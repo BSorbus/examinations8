@@ -1,0 +1,42 @@
+<%# Krok 3: adres korespondencyjny – z TERYT (Mieszkam w Polsce) albo wpisany ręcznie. %>
+<%= form_with model: proposal, url: proposal_wizard_path(proposal, "step3"), method: :patch, class: "form-section",
+              html: { novalidate: true }, data: { controller: "toggle" } do |f| %>
+  <label class="checkbox">
+    <%= f.check_box :lives_in_poland, data: { toggle_target: "checkbox", action: "toggle#update" } %>
+    <%= Proposal.human_attribute_name(:lives_in_poland) %>
+  </label>
+
+  <div data-toggle-target="whenChecked" data-controller="address" <%= "hidden" unless proposal.lives_in_poland? %>
+       data-address-url-value="<%= address_lookup_path %>" data-address-type-more-value="<%= t("proposals.wizard.step3.type_more") %>"
+       data-address-no-results-value="<%= t("proposals.wizard.step3.no_results") %>"
+       data-address-numbers-value="<%= t("proposals.wizard.step3.numbers") %>">
+    <div class="field combobox">
+      <label class="field__label" for="proposal_address_combine_id"><%= Proposal.human_attribute_name(:address_combine_id) %> <span class="required" aria-hidden="true">*</span></label>
+      <input type="text" id="proposal_address_combine_id" class="form-control form-control-sm" autocomplete="off"
+             placeholder="<%= t("proposals.wizard.step3.address_search") %>" role="combobox" aria-autocomplete="list"
+             aria-expanded="false" aria-controls="address_options" aria-describedby="address_combine_id_hint<%= " address_combine_id_error" if proposal.errors.include?(:address_combine_id) %>"
+             <%= "aria-invalid=true" if proposal.errors.include?(:address_combine_id) %>
+             data-address-target="input" data-action="input->address#search keydown->address#keydown blur->address#close">
+      <ul id="address_options" role="listbox" class="combobox__list" hidden data-address-target="list"></ul>
+      <span class="combobox__status" role="status" aria-live="polite" data-address-target="status"></span>
+      <%= f.hidden_field :address_combine_id, data: { address_target: "value" } %>
+      <p><%= t("proposals.wizard.step3.selected") %> <span class="selected-address" data-address-target="selected"><%=
+        [ [ proposal.city_name, [ proposal.street_attribute, proposal.street_name ].compact_blank.join(" ") ].compact_blank.join(", "),
+          [ proposal.commune_name, proposal.district_name, proposal.province_name ].compact_blank.join(", ") ].compact_blank.join(" – ").presence || "–" if proposal.lives_in_poland? %></span></p>
+      <%= field_error(proposal, :address_combine_id) %>
+      <span class="field__hint" id="address_combine_id_hint"><%= t("proposals.wizard.step3.address_hint") %> <%= t("proposals.wizard.step3.not_found_hint") %></span>
+    </div>
+  </div>
+
+  <div class="field-row" data-toggle-target="whenUnchecked" <%= "hidden" if proposal.lives_in_poland? %>>
+    <%= form_field(f, :city_name, required: true) { f.text_field :city_name, class: "form-control form-control-sm", aria: field_aria(proposal, :city_name) } %>
+    <%= form_field(f, :street_name) { f.text_field :street_name, class: "form-control form-control-sm", aria: field_aria(proposal, :street_name) } %>
+  </div>
+
+  <div class="field-row">
+    <%= form_field(f, :c_address_house, required: true) { f.text_field :c_address_house, class: "form-control form-control-sm", aria: field_aria(proposal, :c_address_house) } %>
+    <%= form_field(f, :c_address_number) { f.text_field :c_address_number, class: "form-control form-control-sm", aria: field_aria(proposal, :c_address_number) } %>
+    <%= form_field(f, :c_address_postal_code, required: true) { f.text_field :c_address_postal_code, class: "form-control form-control-sm", autocomplete: "postal-code", aria: field_aria(proposal, :c_address_postal_code) } %>
+  </div>
+  <%= render "navigation" %>
+<% end %>

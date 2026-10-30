@@ -1,0 +1,39 @@
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t("pages.home.title") %></h1>
+    <p class="hero__lead"><%= t("description") %></p>
+  </div>
+</section>
+
+<div class="page">
+  <%= render "shared/flash" %>
+  <div class="card-grid">
+    <div class="card">
+      <%# Treść jak w poprzedniej wersji (static_pages/_info). %>
+      <p>Program <strong>„UKE Egzaminy”</strong> umożliwia zapisanie się na egzamin na świadectwo operatora urządzeń radiowych w służbie amatorskiej oraz morskiej i żeglugi śródlądowej (LRC, SRC, IWC, VHF)</p>
+      <p>Aby zapisać się na egzamin musisz posiadać w UKE swoje konto. Jeśli nie masz konta, utwórz je.
+        Po utworzeniu konta, zaloguj się i wypełnij zgłoszenie.</p>
+      <p>Na Twój adres e-mail będą przekazywane informacje o statusie Twojego zgłoszenia.</p>
+
+      <div class="actions">
+        <% if user_signed_in? %>
+          <%= link_to t("proposals.index.navbar"), proposals_path, class: "btn btn-primary" %>
+        <% else %>
+          <%= link_to t("devise.link_to.sign_in"), new_user_session_path, class: "btn btn-primary", data: { turbo: false } %>
+          <% if Rails.env.development? %>
+            <%= button_to t("pages.home.dev_login"), development_login_path, class: "btn btn-outline-primary" %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <aside class="card" aria-labelledby="steps_heading">
+      <h2 id="steps_heading"><%= t("pages.home.steps_label") %></h2>
+      <ol class="steps-list" style="grid-template-columns: minmax(0, 1fr);">
+        <% 3.times do |i| %>
+          <li><%= t("pages.home.slide_#{i}") %></li>
+        <% end %>
+      </ol>
+    </aside>
+  </div>
+</div>

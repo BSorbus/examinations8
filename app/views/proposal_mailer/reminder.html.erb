@@ -1,0 +1,7 @@
+<p>W programie <strong>UKE Egzaminy</strong></p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>ma status <%= mail_status("ZAAKCEPTOWANE", :ok) %>.</p>
+<div style="height: 8px;"></div>
+<p>Przypominamy o egzaminie w dniu <%= "#{@proposal.exam_date_exam.strftime("%Y-%m-%d")}" %>.</p>
+<p><%= link_to "Szczegółowe informacje na temat sesji egzaminacyjnych", @uke_sessions_url, style: "color: #1B3C8F;" %></p>

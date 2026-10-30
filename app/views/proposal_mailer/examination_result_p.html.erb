@@ -1,0 +1,7 @@
+<h4>Gratulacje!</h4>
+<p>W programie <strong>UKE Egzaminy</strong></p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>otrzymało status <%= mail_status("ZAMKNIĘTE", :ok) %>. Wynik egzaminu: "Pozytywny"</p>
+<div style="height: 8px;"></div>
+<p>...Czekaj na dokument potwierdzający Twoje uprawnienia.</p>

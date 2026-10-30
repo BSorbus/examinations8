@@ -1,0 +1,59 @@
+<%# Krok 4: opłata (z NETPAR, ulga do 18 lat) i załączniki. Pliki sprawdzane przed wysłaniem i na serwerze. %>
+<section class="form-section" aria-labelledby="payment_heading">
+  <h2 id="payment_heading" class="field__label" style="font-size: 1.125rem;"><%= t("proposals.wizard.step4.payment") %></h2>
+  <% if proposal.exam_fee_price.present? %>
+    <% rows = { amount: price(proposal.exam_fee_price),
+                recipient: "Urząd Komunikacji Elektronicznej, ul. Giełdowa 7/9, 01-211 Warszawa",
+                account: "75 1010 1010 0060 4422 3100 0000",
+                transfer_title: t("proposals.wizard.step4.transfer_title_value") } %>
+    <dl class="payment">
+      <% rows.each do |key, value| %>
+        <dt><%= t("proposals.wizard.step4.#{key}") %></dt>
+        <dd data-controller="clipboard" data-clipboard-copied-value="<%= t("proposals.wizard.step4.copied") %>">
+          <span data-clipboard-target="source"><%= value %></span>
+          <% unless key == :amount %>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-clipboard-target="button" data-action="clipboard#copy"
+                    aria-label="<%= t("proposals.wizard.step4.copy") %>: <%= t("proposals.wizard.step4.#{key}") %>"><%= t("proposals.wizard.step4.copy") %></button>
+          <% end %>
+        </dd>
+      <% end %>
+    </dl>
+  <% else %>
+    <p class="flash flash--alert"><%= t("proposals.wizard.step4.no_fee") %></p>
+  <% end %>
+  <%= field_error(proposal, :exam_fee_price) %>
+</section>
+
+<%= form_with model: proposal, url: proposal_wizard_path(proposal, "step4"), method: :patch, class: "form-section", html: { novalidate: true } do |f| %>
+  <% pdf = { types: %w[application/pdf], max: Proposal::PDF_MAX_SIZE, type_message: "nieprawidłowy typ pliku (wymagany typ PDF)", size_message: "plik jest za duży (max 600kB)" } %>
+  <% image = { types: Proposal::IMAGE_TYPES, max: Proposal::IMAGE_MAX_SIZE, type_message: "nieprawidłowy typ pliku (wymagany typ JPG/JPEG/PNG)", size_message: "plik jest za duży (max 2MB)" } %>
+  <% attachments = [ [ :bank_pdf, pdf, true, "application/pdf" ] ]
+     attachments << [ :face_image, image, true, "image/png, image/jpeg" ] if proposal.face_image_required?
+     attachments << [ :consent_pdf, pdf, true, "application/pdf" ] if proposal.consent_pdf_required?
+     attachments << [ :other_pdf, pdf, false, "application/pdf" ] %>
+  <% attachments.each do |name, rules, required, accept| %>
+    <div class="field" data-controller="file-check" data-file-check-types-value="<%= rules[:types].to_json %>"
+         data-file-check-max-size-value="<%= rules[:max] %>"
+         data-file-check-type-message-value="<%= Proposal.human_attribute_name(name) %> <%= rules[:type_message] %>"
+         data-file-check-size-message-value="<%= Proposal.human_attribute_name(name) %> <%= rules[:size_message] %>">
+      <%= f.label name, class: "field__label" do %><%= Proposal.human_attribute_name(name) %><% if required %> <span class="required" aria-hidden="true">*</span><% end %><% end %>
+      <%= f.file_field name, accept:, class: "form-control form-control-sm",
+                       aria: field_aria(proposal, name, hint: true), data: { file_check_target: "input", action: "file-check#check" } %>
+      <span class="field-error" role="alert" hidden data-file-check-target="error"></span>
+      <%= field_error(proposal, name) %>
+      <% attachment = proposal.public_send(name) %>
+      <% if attachment.attached? && attachment.persisted? %>
+        <span class="field__hint"><%= t("proposals.wizard.step4.current_file", name: attachment.filename) %></span>
+      <% end %>
+      <% if name == :face_image %>
+        <img class="photo-preview" alt="" hidden data-file-check-target="preview"
+             <%= "src=#{rails_blob_path(attachment)} " if attachment.attached? && attachment.persisted? %>>
+      <% end %>
+      <% if name == :other_pdf && attachment.attached? && attachment.persisted? %>
+        <label class="checkbox"><%= f.check_box :remove_other_pdf %> <%= Proposal.human_attribute_name(:remove_other_pdf) %></label>
+      <% end %>
+      <span class="field__hint" id="<%= name %>_hint"><%= t("proposals.wizard.step4.#{name}_hint") %></span>
+    </div>
+  <% end %>
+  <%= render "navigation" %>
+<% end %>

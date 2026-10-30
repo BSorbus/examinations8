@@ -1,0 +1,7 @@
+<p>W programie <strong>UKE Egzaminy</strong> utworzone zostało </p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>Po jego zweryfikowaniu przyślemy informację, czy zostało ono zaakceptowane, czy też odrzucone.</p>
+<div style="height: 8px;"></div>
+<p>...Sprawdzaj status zgłoszenia i czekaj na wiadomość!</p>
+<p><%= link_to "Szczegółowe informacje na temat sesji egzaminacyjnych", @uke_sessions_url, style: "color: #1B3C8F;" %></p>

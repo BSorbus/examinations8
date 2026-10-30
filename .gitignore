@@ -1,0 +1,35 @@
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all environment files.
+/.env*
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Załączniki wniosków (ActiveStorage) – dane osobowe, tylko na serwerze.
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+/public/assets
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+/config/credentials/*.key
+
+# Konfiguracja wdrożeń (adresy serwerów) i credentials przygotowane dla poszczególnych serwerów – tylko lokalnie.
+/config/deploy.rb
+/config/deploy/

@@ -1,0 +1,19 @@
+<%# Statystyki Matomo (dawniej Piwik) – ta sama witryna co w poprzedniej wersji (config/examinations.yml). %>
+<% matomo = Rails.configuration.x.examinations[:matomo] %>
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(["enableLinkTracking"]);
+  (function() {
+    var u = <%= raw matomo[:url].to_json %>;
+    _paq.push(["setTrackerUrl", u + "piwik.php"]);
+    _paq.push(["setSiteId", <%= raw matomo[:site_id].to_s.to_json %>]);
+    var d = document, g = d.createElement("script"), s = d.getElementsByTagName("script")[0];
+    g.async = true; g.src = u + "piwik.js"; s.parentNode.insertBefore(g, s);
+  })();
+  // Turbo podmienia strony bez przeładowania – liczymy każde wyświetlenie.
+  document.addEventListener("turbo:load", function() {
+    _paq.push(["setCustomUrl", window.location.href]);
+    _paq.push(["setDocumentTitle", document.title]);
+    _paq.push(["trackPageView"]);
+  });
+</script>

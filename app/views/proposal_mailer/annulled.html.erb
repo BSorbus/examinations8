@@ -1,0 +1,5 @@
+<p>W programie <strong>UKE Egzaminy</strong></p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>zostało <%= mail_status("ANULOWANE", :warn) %> i nie będzie dłużej procedowane.</p>
+<div style="height: 8px;"></div>

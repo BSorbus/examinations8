@@ -1,0 +1,8 @@
+<p>W programie <strong>UKE Egzaminy</strong></p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>otrzymało status <%= mail_status("ZAMKNIĘTE", :bad) %> z powodu:</p>
+<%= simple_format(@proposal.not_approved_comment) %>
+<div style="height: 8px;"></div>
+<p>...Spróbuj raz jeszcze i ponownie utwórz zgłoszenie!</p>
+<p><%= link_to "Szczegółowe informacje na temat sesji egzaminacyjnych", @uke_sessions_url, style: "color: #1B3C8F;" %></p>

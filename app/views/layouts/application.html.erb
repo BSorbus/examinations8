@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8">
+    <%# Wygląd strony (jasny / ciemny / kontrast) ustawiany przed narysowaniem strony, bez mignięcia:
+        wybór z przełącznika, a bez niego – ustawienia systemu (wysoki kontrast, tryb ciemny). %>
+    <script>
+      (function () {
+        var theme = null, mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+        try { theme = localStorage.getItem("theme"); } catch (e) {}
+        if (["light", "dark", "contrast"].indexOf(theme) < 0) {
+          theme = mq("(prefers-contrast: more)") ? "contrast" : (mq("(prefers-color-scheme: dark)") ? "dark" : "light");
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-bs-theme", theme === "light" ? "light" : "dark");
+      })();
+    </script>
+    <title><%= content_for(:title) || t("layouts.title") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="<%= t("description") %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= favicon_link_tag "favicon.ico" %>
+    <%= stylesheet_link_tag "bootstrap.min", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= render "layouts/matomo" if Rails.configuration.x.examinations.dig(:matomo, :enabled) %>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#content"><%= t("layouts.skip_to_content") %></a>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <%= link_to home_path, class: "brand", aria: { label: t("layouts.header.logo_alt") } do %>
+          <span class="brand__name" aria-hidden="true"><span class="brand__c">E</span>GZAMINY</span>
+          <span class="brand__divider" aria-hidden="true"></span>
+          <span class="brand__org" aria-hidden="true"><%= safe_join(t("layouts.header.organization"), tag.br) %></span>
+        <% end %>
+        <nav class="site-header__nav" aria-label="<%= t("layouts.header.menu") %>">
+          <div class="user-nav">
+            <% if user_signed_in? %>
+              <%= link_to t("proposals.index.navbar"), proposals_path, class: "btn btn-outline-primary btn-sm" %>
+              <span class="user-nav__name"><%= current_user.name %></span>
+              <%= button_to t("helpers.links.sign_out"), destroy_user_session_path, method: :delete, class: "btn btn-outline-primary btn-sm",
+                            form: { data: { turbo: false } } %>
+            <% else %>
+              <%= link_to t("helpers.links.sign_in"), new_user_session_path, class: "btn btn-primary btn-sm", data: { turbo: false } %>
+            <% end %>
+          </div>
+          <div class="theme-switch" role="group" aria-label="<%= t("layouts.header.theme.label") %>" data-controller="theme">
+            <% { "light" => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+                 "dark" => '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+                 "contrast" => '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>' }.each do |theme, icon| %>
+              <button type="button" class="theme-switch__button" aria-pressed="false" title="<%= t("layouts.header.theme.#{theme}") %>"
+                      data-theme-target="button" data-theme-value="<%= theme %>" data-action="theme#select">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><%= icon.html_safe %></svg>
+                <span class="visually-hidden"><%= t("layouts.header.theme.#{theme}") %></span>
+              </button>
+            <% end %>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" tabindex="-1">
+      <%= yield %>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <div class="site-footer__section">
+          <p class="site-footer__brand"><%= t("layouts.footer.brand") %></p>
+          <p><%= t("layouts.footer.brand_address_1") %>, <%= t("layouts.footer.brand_address_2") %></p>
+          <p><%= t("layouts.footer.brand_note") %></p>
+        </div>
+        <div class="site-footer__section">
+          <p class="site-footer__heading"><%= t("layouts.footer.contact") %></p>
+          <ul class="site-footer__links">
+            <li><%= mail_to t("layouts.footer.contact_mail") %></li>
+          </ul>
+          <p class="site-footer__heading"><%= t("layouts.footer.contact_mor") %></p>
+          <ul class="site-footer__links">
+            <li><%= mail_to t("layouts.footer.contact_mor_mail") %></li>
+          </ul>
+        </div>
+        <div class="site-footer__section">
+          <p class="site-footer__heading"><%= t("layouts.footer.links") %></p>
+          <ul class="site-footer__links">
+            <li><%= link_to t("pages.declaration.title"), declaration_path %></li>
+            <li><%= link_to "UKE", t("layouts.footer.uke_url") %></li>
+          </ul>
+        </div>
+        <p class="site-footer__copy">&copy; 2020–<%= Date.current.year %> UKE</p>
+      </div>
+    </footer>
+  </body>
+</html>

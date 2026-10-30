@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title><%= message.subject %></title>
+    <style>a { color: #1B3C8F; }</style>
+  </head>
+  <%# Wygląd jak na stronie (granat + limonka). Układ tabelami i style w HTML – działa w Outlooku, Gmailu i telefonach.
+      Znak „EGZAMINY” jest tekstem (widoczny także przy zablokowanych obrazkach). Treści maili – 1:1 z poprzedniej wersji. %>
+  <body style="margin: 0; padding: 0; background: #F3F5F9; font-family: 'Segoe UI', Arial, Helvetica, sans-serif; color: #1F2937; font-size: 15px; line-height: 1.55;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #F3F5F9;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; background: #FFFFFF; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(16, 38, 92, .12);">
+            <%# Nagłówek: znak aplikacji na granatowym pasie z limonkową linią %>
+            <tr>
+              <td style="background: #1B3C8F; border-bottom: 4px solid #BECC25; padding: 20px 28px;">
+                <%= link_to home_url, style: "text-decoration: none;" do %>
+                  <span style="font-size: 26px; letter-spacing: .02em; color: #BECC25;"><span style="color: #FFFFFF;">E</span>GZAMINY</span>
+                  <span style="display: inline-block; margin-left: 10px; padding-left: 10px; border-left: 1px solid #DCE3A0; font-size: 12px; line-height: 1.2; color: #E5EAF5; vertical-align: middle;">Urząd Komunikacji<br>Elektronicznej</span>
+                <% end %>
+              </td>
+            </tr>
+            <%# Adresat %>
+            <tr>
+              <td style="padding: 16px 28px 0; text-align: right; font-size: 13px; color: #4B5563;">
+                <%= @proposal&.email %><br>
+                <%= "#{@proposal&.given_names} #{@proposal&.name}" %>
+              </td>
+            </tr>
+            <%# Treść %>
+            <tr>
+              <td style="padding: 8px 28px 24px;">
+                <%= yield %>
+              </td>
+            </tr>
+            <%# Stopka %>
+            <tr>
+              <td style="padding: 0 28px;"><div style="border-top: 2px solid #BECC25;"></div></td>
+            </tr>
+            <tr>
+              <td style="padding: 16px 28px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td valign="middle"><%= image_tag(attachments["logo_uke.png"].url, alt: "Urząd Komunikacji Elektronicznej", style: "display: block; max-width: 180px; height: auto;") %></td>
+                    <td valign="middle" style="text-align: right; font-size: 13px; line-height: 1.7;">
+                      <%= mail_to "wml@uke.gov.pl", nil, style: "color: #1B3C8F;" %><br>
+                      <%= mail_to "ske.gdynia@uke.gov.pl", nil, style: "color: #1B3C8F;" %>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 0 28px 20px; font-size: 12px; color: #4B5563;">
+                &copy; 2020–<%= Date.current.year %> UKE, Wysłano z programu <%= Rails.configuration.x.examinations[:host] %>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

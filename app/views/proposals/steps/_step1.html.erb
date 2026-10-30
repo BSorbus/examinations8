@@ -1,0 +1,85 @@
+<%# Krok 1: służba, rodzaj i sesja. Wybór służby i rodzaju – formularz GET (lista rodzajów i sesji z NETPAR). %>
+<div class="note"><%= sanitize t("proposals.wizard.documents_html"), tags: %w[p ul li br] %></div>
+
+<div class="field">
+  <p class="field__label"><%= Proposal.human_attribute_name(:esod_category) %></p>
+  <p><%= proposal.esod_category_name %></p>
+</div>
+
+<% if proposal.correction_exam? %>
+  <p class="field__hint"><%= t("proposals.wizard.step1.correction_locked") %></p>
+<% else %>
+  <%= form_with url: proposal_wizard_path(proposal, "step1"), method: :get, class: "form-section",
+                data: { controller: "auto-submit", turbo_action: "replace" } do %>
+    <div class="field-row">
+      <div class="field">
+        <%= label_tag :category, Proposal.human_attribute_name(:category), class: "field__label" %>
+        <%= select_tag :category, options_for_select(Proposal::CATEGORY_NAMES.invert, @category),
+                       include_blank: t("proposals.wizard.step1.choose_category"), class: "form-select form-select-sm",
+                       data: { action: "auto-submit#submit" } %>
+      </div>
+      <% if @category.present? %>
+        <div class="field">
+          <%= label_tag :division_id, Proposal.human_attribute_name(:division_id), class: "field__label" %>
+          <%= select_tag :division_id, options_for_select(@divisions.map { [ it["fullname"].presence || it["name"], it["id"] ] }, @division_id),
+                         include_blank: t("proposals.wizard.step1.choose_division"), class: "form-select form-select-sm",
+                         data: { action: "auto-submit#submit" } %>
+        </div>
+      <% end %>
+      <div class="field field--checkbox">
+        <button type="submit" class="btn btn-outline-primary btn-sm" data-auto-submit-target="button"><%= t("proposals.wizard.step1.show") %></button>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<%= form_with model: proposal, url: proposal_wizard_path(proposal, "step1"), method: :patch, class: "form-section" do |f| %>
+  <%= f.hidden_field :category, value: @category %>
+  <%= f.hidden_field :division_id, value: @division_id %>
+
+  <% if proposal.correction_exam? %>
+    <dl class="details">
+      <div><dt><%= Proposal.human_attribute_name(:category) %></dt><dd><%= proposal.category_name %></dd></div>
+      <div class="details__wide"><dt><%= Proposal.human_attribute_name(:division_id) %></dt><dd><%= proposal.division_fullname %></dd></div>
+    </dl>
+  <% end %>
+  <%= field_error(proposal, :category) %>
+  <%= field_error(proposal, :division_id) %>
+
+  <% if @division_id.present? %>
+    <fieldset class="form-section" id="proposal_exam_id" data-controller="province-filter">
+      <legend><%= Proposal.human_attribute_name(:exam_id) %> <span class="required" aria-hidden="true">*</span></legend>
+      <p class="field__hint" id="exam_id_hint"><%= t("proposals.wizard.step1.sessions_hint", days: @category == "R" ? 7 : 14) %></p>
+      <%= field_error(proposal, :exam_id) %>
+      <% if @exams.any? %>
+        <% provinces = @exams.reject { it["online"] }.map { it["province_name"] }.compact.uniq.sort %>
+        <% if provinces.size > 1 %>
+          <div class="field" style="max-width: 320px;">
+            <%= label_tag :province_filter, t("proposals.wizard.step1.province"), class: "field__label" %>
+            <%= select_tag :province_filter, options_for_select(provinces), include_blank: t("proposals.wizard.step1.all_provinces"),
+                           class: "form-select form-select-sm", data: { province_filter_target: "select", action: "province-filter#filter" } %>
+          </div>
+        <% end %>
+        <ul class="session-list">
+          <% @exams.each do |exam| %>
+            <li data-province-filter-target="item" data-province="<%= exam["province_name"] %>" data-online="<%= exam["online"] == true %>">
+              <label class="session">
+                <%= f.radio_button :exam_id, exam["id"], checked: proposal.exam_id == exam["id"], aria: { describedby: "exam_id_hint" } %>
+                <span>
+                  <span class="session__date"><%= exam["date_exam"] %></span>
+                  <% if exam["online"] %> <span class="badge-online"><%= t("proposals.wizard.step1.online") %></span><% end %><br>
+                  <span><%= [ exam["place_exam"], exam["info"] ].compact_blank.join(", ") %></span><br>
+                  <span class="session__meta"><%= [ exam["number"], (exam["province_name"] unless exam["online"]) ].compact_blank.join(" · ") %></span>
+                </span>
+              </label>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="note"><%= t("proposals.wizard.step1.no_sessions") %></p>
+      <% end %>
+    </fieldset>
+  <% end %>
+
+  <%= render "navigation" %>
+<% end %>

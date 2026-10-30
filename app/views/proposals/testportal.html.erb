@@ -1,0 +1,38 @@
+<% content_for :title, "#{t(".title")} – #{t("layouts.title")}" %>
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t(".title") %></h1>
+    <p class="hero__lead"><%= @proposal.rec_info_short %></p>
+  </div>
+</section>
+
+<div class="page" data-controller="testportal" data-testportal-next-test-value="<%= t(".next_test") %>" data-testportal-all-done-value="<%= t(".all_done") %>">
+  <div class="card">
+    <div class="note"><%= sanitize t(".info_html"), tags: %w[p] %></div>
+  </div>
+
+  <section class="card" aria-labelledby="grades_heading">
+    <h2 id="grades_heading"><%= t(".title_grades") %></h2>
+    <p class="flash flash--notice" role="status" tabindex="-1" data-testportal-target="message"></p>
+    <div class="actions">
+      <%# Start testu w TestPortal – dane jak w poprzedniej wersji (kod dostępu z NETPAR, identyfikator zgłoszenia). %>
+      <% @grades.each do |grade| %>
+        <% start = { autoSubmit: true, startPageReadOnly: true, personUID: @proposal.multi_app_identifier,
+                     accessCode: grade["testportal_access_code_id"].to_s,
+                     personalData: { firstName: current_user.first_name.to_s, lastName: current_user.last_name.to_s } } %>
+        <%= form_with url: Rails.configuration.x.examinations[:testportal_start_url], method: :post,
+                      authenticity_token: false, html: { target: "test-frame" }, data: { turbo: false } do %>
+          <%= hidden_field_tag :startTestRequest, start.to_json, id: nil %>
+          <button type="submit" class="btn btn-primary" data-testportal-target="button" data-action="testportal#start">
+            <%= grade.dig("testportal_test_info", "name").presence || grade["subject_name"] %>
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+    <iframe name="test-frame" title="<%= t(".frame_title") %>" class="testportal-frame" src="about:blank" hidden data-testportal-target="frame"></iframe>
+  </section>
+
+  <div class="actions">
+    <%= link_to t("helpers.links.index"), proposals_path, class: "btn btn-outline-primary" %>
+  </div>
+</div>

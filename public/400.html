@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>400 – Nieprawidłowe żądanie – UKE Egzaminy – UKE</title>
+  <meta name="robots" content="noindex">
+  <script>
+    // Ten sam wygląd co w aplikacji: wybór z przełącznika (localStorage), a bez niego – ustawienia systemu.
+    (function () {
+      var t = null, mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+      try { t = localStorage.getItem("theme"); } catch (e) {}
+      if (["light", "dark", "contrast"].indexOf(t) < 0) t = mq("(prefers-contrast: more)") ? "contrast" : (mq("(prefers-color-scheme: dark)") ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { display: flex; flex-direction: column; font-family: "Titillium Web", "Segoe UI", Arial, sans-serif; color: #1F2937; background: #F3F5F9; line-height: 1.5; }
+    header { background: #FFFFFF; border-bottom: 4px solid #BECC25; padding: 18px 24px; font-size: 1.5rem; font-weight: 700; letter-spacing: .04em; }
+    header span { color: #1B3C8F; }
+    header small { color: #4B5563; font-size: .95rem; font-weight: 400; letter-spacing: 0; margin-left: 12px; }
+    main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 40px 24px; }
+    .code { font-size: 4rem; font-weight: 700; color: #1B3C8F; line-height: 1; margin: 0 0 24px; }
+    section { background: #FFFFFF; border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(16, 38, 92, .12); }
+    h1, h2 { font-size: 1.5rem; color: #1B3C8F; margin: 0 0 8px; }
+    p { margin: 0 0 12px; }
+    a { color: #1B3C8F; font-weight: 600; }
+    a:focus-visible { outline: 3px solid #F5B400; outline-offset: 2px; }
+    footer { background: #10265C; color: #E5EAF5; border-top: 4px solid #BECC25; padding: 20px 24px; font-size: .95rem; }
+    footer a { color: #DCE3A0; }
+    /* Tryb ciemny */
+    [data-theme="dark"] body { color: #E6EAF2; background: #0E1525; }
+    [data-theme="dark"] header, [data-theme="dark"] section { background: #172033; box-shadow: none; }
+    [data-theme="dark"] header { color: #BECC25; }
+    [data-theme="dark"] header span, [data-theme="dark"] .code, [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] main a { color: #9DB8FF; }
+    [data-theme="dark"] header small { color: #D1D5DB; }
+    /* Wysoki kontrast */
+    [data-theme="contrast"] body, [data-theme="contrast"] header, [data-theme="contrast"] section, [data-theme="contrast"] footer { background: #000000; color: #FFFFFF; box-shadow: none; }
+    [data-theme="contrast"] section { border: 2px solid #FFFFFF; }
+    [data-theme="contrast"] header { color: #FFFF00; border-bottom-color: #FFFF00; }
+    [data-theme="contrast"] header span, [data-theme="contrast"] header small { color: #FFFFFF; }
+    [data-theme="contrast"] .code, [data-theme="contrast"] h1, [data-theme="contrast"] h2, [data-theme="contrast"] a { color: #FFFF00; }
+    [data-theme="contrast"] a { text-decoration: underline; }
+    [data-theme="contrast"] a:focus-visible { outline-color: #00FFFF; outline-width: 4px; }
+  </style>
+</head>
+<body>
+  <header><span>C</span>ONFIRMATION <small>Urząd Komunikacji Elektronicznej</small></header>
+  <main>
+    <p class="code" aria-hidden="true">400</p>
+    <section>
+      <h1>Nieprawidłowe żądanie</h1>
+      <p>Przeglądarka wysłała żądanie, którego nie można obsłużyć. Przejdź do strony głównej i spróbuj ponownie.</p>
+      <p><a href="/pl">Przejdź do strony głównej</a></p>
+    </section>
+  </main>
+  <footer>Urząd Komunikacji Elektronicznej · <a href="mailto:ske.gdynia@uke.gov.pl">ske.gdynia@uke.gov.pl</a></footer>
+</body>
+</html>

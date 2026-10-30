@@ -1,0 +1,50 @@
+<% content_for :title, "#{t(".title")} – #{t("layouts.title")}" %>
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t(".title") %></h1>
+    <p class="hero__lead"><%= @proposal.rec_info_short %></p>
+  </div>
+</section>
+
+<div class="page">
+  <%= render "shared/flash" %>
+
+  <section class="card" aria-labelledby="status_heading">
+    <h2 id="status_heading"><%= Proposal.human_attribute_name(:status_name) %></h2>
+    <p class="status <%= status_class(@proposal) %>"><%= @proposal.status_name %></p>
+    <div class="note"><p><%= sanitize t("proposals.status_comments.#{@proposal.proposal_status_id}"), tags: %w[strong br] %></p></div>
+    <% if @proposal.not_approved_comment.present? %>
+      <h3 class="field__label" style="margin-top: 16px;"><%= Proposal.human_attribute_name(:not_approved_comment) %></h3>
+      <%= simple_format(@proposal.not_approved_comment) %>
+    <% end %>
+    <div class="actions" style="margin-top: 16px;">
+      <%= link_to t("helpers.links.index"), proposals_path, class: "btn btn-outline-primary" %>
+      <% if policy(@proposal).annul? %>
+        <%= button_to t("helpers.links.annulled"), annul_proposal_path(@proposal), method: :patch, class: "btn btn-outline-primary",
+                      form: { data: { turbo_confirm: t("helpers.links.confirm_annulled", data: @proposal.rec_info) } } %>
+      <% end %>
+      <% if policy(@proposal).correction_exam? %>
+        <%= button_to t("helpers.links.create_correction_exam"), correction_exam_proposal_path(@proposal), class: "btn btn-primary",
+                      form: { data: { turbo_confirm: t("helpers.links.confirm_create_correction_exam") } } %>
+      <% end %>
+      <% if policy(@proposal).testportal? && @proposal.exam_date_exam == Time.zone.today %>
+        <%= link_to t("helpers.links.take_test"), testportal_proposal_path(@proposal), class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  </section>
+
+  <%= render "details", proposal: @proposal %>
+
+  <% if @proposal.events.any? %>
+    <section class="card" aria-labelledby="history_heading">
+      <h2 id="history_heading"><%= t(".history") %></h2>
+      <ul class="history">
+        <% @proposal.events.order(:created_at).each do |event| %>
+          <li><%= l(event.created_at, format: :short) %> – <%= t("proposals.events.#{event.kind}") %>
+            <% if event.kind == "netpar_update" && event.data["proposal_status_id"] %>: <%= t("proposals.status_id_#{event.data["proposal_status_id"]}_name") %><% end %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</div>

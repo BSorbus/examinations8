@@ -1,0 +1,8 @@
+# Omakase Ruby styling for Rails
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+# Zaświadczenie PDF przeniesione 1:1 z poprzedniej wersji (zatwierdzony dokument) – zachowujemy
+# oryginalny zapis, żeby łatwo porównać go ze starym plikiem.
+AllCops:
+  Exclude:
+    - "app/pdfs/pdf_statement.rb"

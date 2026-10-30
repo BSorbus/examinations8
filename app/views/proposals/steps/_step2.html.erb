@@ -1,0 +1,26 @@
+<%# Krok 2: dane podstawowe. Imię, nazwisko i e-mail – z konta UKE (tylko do odczytu), jak w poprzedniej wersji. %>
+<%= form_with model: proposal, url: proposal_wizard_path(proposal, "step2"), method: :patch, class: "form-section", html: { novalidate: true } do |f| %>
+  <p class="field__hint"><%= t("proposals.wizard.step2.account_note") %></p>
+  <div class="field-row">
+    <%= form_field(f, :email, required: true) { f.email_field :email, class: "form-control form-control-sm", readonly: true } %>
+    <%= form_field(f, :name, required: true) { f.text_field :name, class: "form-control form-control-sm", readonly: true } %>
+    <%= form_field(f, :given_names, required: true) { f.text_field :given_names, class: "form-control form-control-sm", readonly: true } %>
+  </div>
+  <div class="field-row">
+    <%= form_field(f, :pesel) do %>
+      <%= f.text_field :pesel, class: "form-control form-control-sm", inputmode: "numeric", maxlength: 11, autocomplete: "off",
+                       readonly: current_user.pesel.present?, aria: field_aria(proposal, :pesel) %>
+    <% end %>
+    <%= form_field(f, :citizenship_code, required: true) do %>
+      <%= f.country_select :citizenship_code, { priority_countries: [ "PL" ], format: :default },
+                           { class: "form-select form-select-sm", aria: field_aria(proposal, :citizenship_code) } %>
+    <% end %>
+    <%= form_field(f, :phone) { f.telephone_field :phone, class: "form-control form-control-sm", autocomplete: "tel", aria: field_aria(proposal, :phone) } %>
+  </div>
+  <div class="field-row">
+    <%= form_field(f, :birth_place, required: true) { f.text_field :birth_place, class: "form-control form-control-sm", aria: field_aria(proposal, :birth_place) } %>
+    <%= form_field(f, :birth_date, required: true) { f.date_field :birth_date, class: "form-control form-control-sm", aria: field_aria(proposal, :birth_date) } %>
+    <%= form_field(f, :family_name, required: true) { f.text_field :family_name, class: "form-control form-control-sm", aria: field_aria(proposal, :family_name) } %>
+  </div>
+  <%= render "navigation" %>
+<% end %>

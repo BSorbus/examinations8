@@ -1,0 +1,41 @@
+<%# Dane zgłoszenia w kolejności kroków kreatora. editable: true – przyciski „Zmień” (podsumowanie kreatora). %>
+<% editable = local_assigns.fetch(:editable, false) %>
+<% sections = {
+     "step1" => [ [ :esod_category, proposal.esod_category_name ], [ :category_name, proposal.category_name ],
+                  [ :division_fullname, proposal.division_fullname ], [ :exam_fullname, proposal.exam_fullname, true ],
+                  [ :exam_date_exam, proposal.exam_date_exam && l(proposal.exam_date_exam) ] ],
+     "step2" => [ [ :email, proposal.email ], [ :name, proposal.name ], [ :given_names, proposal.given_names ],
+                  [ :pesel, proposal.pesel ], [ :citizenship_code, country_name(proposal.citizenship_code) ],
+                  [ :birth_place, proposal.birth_place ], [ :birth_date, proposal.birth_date && l(proposal.birth_date) ],
+                  [ :family_name, proposal.family_name ], [ :phone, proposal.phone ] ],
+     "step3" => [ [ :lives_in_poland, t(proposal.lives_in_poland?.to_s) ],
+                  *(proposal.lives_in_poland? ? [ [ :province_name, proposal.province_name ], [ :district_name, proposal.district_name ],
+                                                  [ :commune_name, proposal.commune_name ] ] : []),
+                  [ :city_name, proposal.city_name ], [ :street_name, [ proposal.street_attribute, proposal.street_name ].compact_blank.join(" ") ],
+                  [ :c_address_house, proposal.c_address_house ], [ :c_address_number, proposal.c_address_number ],
+                  [ :c_address_postal_code, proposal.c_address_postal_code ] ],
+     "step4" => [ [ :exam_fee_price, proposal.exam_fee_price.present? ? price(proposal.exam_fee_price) : nil ],
+                  *%i[bank_pdf face_image consent_pdf other_pdf].filter_map { |name|
+                    attachment = proposal.public_send(name)
+                    [ name, link_to(attachment.filename.to_s, rails_blob_path(attachment, disposition: "inline"), target: "_blank", rel: "noopener") ] if attachment.attached?
+                  } ]
+   } %>
+<% sections.each do |step, rows| %>
+  <section class="card" aria-labelledby="section_<%= step %>">
+    <div class="section-head">
+      <h2 id="section_<%= step %>"><%= t("proposals.sections.#{step}") %></h2>
+      <% if editable %>
+        <%= link_to t("proposals.wizard.change"), proposal_wizard_path(proposal, step, return_to_summary: 1),
+                    class: "btn btn-outline-primary btn-sm", aria: { label: "#{t("proposals.wizard.change")}: #{t("proposals.sections.#{step}")}" } %>
+      <% end %>
+    </div>
+    <dl class="details">
+      <% rows.each do |attribute, value, wide| %>
+        <div class="<%= "details__wide" if wide %>">
+          <dt><%= Proposal.human_attribute_name(attribute) %></dt>
+          <dd><%= value.presence || "–" %></dd>
+        </div>
+      <% end %>
+    </dl>
+  </section>
+<% end %>

@@ -1,0 +1,25 @@
+<% content_for :title, "#{t(".title")} – #{t("layouts.title")}" %>
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t(".title") %></h1>
+    <p class="hero__lead"><%= t(".lead") %></p>
+  </div>
+</section>
+
+<div class="page">
+  <section class="card consent" aria-labelledby="consent_heading">
+    <h2 id="consent_heading" class="visually-hidden"><%= t(".title") %></h2>
+    <div class="consent__content" tabindex="0" aria-label="<%= t(".content_label") %>">
+      <%= render "content" %>
+    </div>
+    <div class="form-actions">
+      <div class="form-actions__buttons">
+        <%= button_to t(".decline"), destroy_user_session_path, method: :delete, class: "btn btn-outline-primary",
+                      form: { data: { turbo: false } } %>
+      </div>
+      <div class="form-actions__buttons">
+        <%= button_to t(".accept"), privacy_consent_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  </section>
+</div>

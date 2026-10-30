@@ -1,0 +1,33 @@
+<% content_for :title, "#{t("proposals.sections.#{@step}")} – #{t("proposals.wizard.title")} – #{t("layouts.title")}" %>
+<% current = Proposal::FORM_STEPS.index(@step) %>
+<% reachable = Proposal::FORM_STEPS.index(@proposal.next_step) %>
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t("proposals.wizard.title") %></h1>
+    <p class="hero__lead"><%= t("proposals.wizard.step_of", current: current + 1, total: Proposal::FORM_STEPS.size) %>: <%= t("proposals.sections.#{@step}") %></p>
+  </div>
+</section>
+
+<div class="page">
+  <div class="card">
+    <ol class="wizard-progress" aria-label="<%= t("proposals.wizard.progress_label") %>">
+      <% Proposal::FORM_STEPS.each_with_index do |step, index| %>
+        <li class="<%= index == current ? "is-current" : ("is-done" if index < reachable) %>" <%= "aria-current=step" if index == current %>>
+          <% if index != current && index <= reachable %>
+            <%= link_to proposal_wizard_path(@proposal, step) do %><span><%= t("proposals.sections.#{step}") %></span><% end %>
+          <% else %>
+            <span><%= t("proposals.sections.#{step}") %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+
+    <div class="wizard-body">
+      <% if @service_error %>
+        <div class="flash flash--alert" role="alert"><%= @service_error %></div>
+      <% end %>
+      <%= render "shared/error_summary", record: @proposal %>
+      <%= render @step, proposal: @proposal %>
+    </div>
+  </div>
+</div>

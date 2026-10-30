@@ -1,0 +1,6 @@
+<p>W programie <strong>UKE Egzaminy</strong></p>
+<p><%= link_to @proposal_fullname, @proposal_url_uuid, style: "color: #1B3C8F;" %> na sesję egzaminacyjną:</p>
+<%= mail_box(@proposal.exam_fullname) %>
+<p>otrzymało status <%= mail_status("ZAMKNIĘTE", :bad) %>. Wynik egzaminu: "Negatywny bez prawa do poprawki"</p>
+<div style="height: 8px;"></div>
+<p>...Spróbuj raz jeszcze i ponownie zapisz się na egzamin!</p>

@@ -1,0 +1,43 @@
+# Ustawienia aplikacji niezależne od serwera. Adresy i dane dostępowe usług (NETPAR, TERYT, WSO2, poczta)
+# są wyłącznie w credentials (lub zmiennych środowiskowych) – patrz config/initializers/examinations.rb.
+shared:
+  netpar:
+    open_timeout: 5
+    read_timeout: 15
+  teryt:
+    open_timeout: 5
+    read_timeout: 10
+  # Wersja informacji o przetwarzaniu danych osobowych (app/views/privacy_consents/_content.html.erb).
+  # Zmiana treści = nowa wersja: każdy użytkownik musi ją zaakceptować przy następnym logowaniu.
+  privacy_version: "2026-10-30"
+  # Egzamin online – formularz startowy TestPortal (otwierany w ramce na stronie egzaminu).
+  testportal_start_url: https://egzaminyuke.testportal.pl/exam/start.html
+  # Przycisk egzaminu online dostępny dla wszystkich zatwierdzonych wniosków online
+  # (w przeciwnym razie tylko po odblokowaniu testu w NETPAR – pole test_unlocked).
+  test_for_all_unlocked: false
+  matomo:
+    enabled: false
+    url: https://stats.uke.gov.pl/
+    site_id: 21
+
+development:
+  test_for_all_unlocked: true
+
+# Testy nie łączą się z prawdziwymi usługami (WebMock) – sztuczne adresy zamiast credentials.
+test:
+  netpar:
+    url: https://netpar.test/api/v1
+    user: egzaminy
+  teryt:
+    url: https://teryt.test
+  host: egzaminy.test
+  saml:
+    idp_target_url: https://idp.test
+    issuer: issuer.egzaminy
+    idp_cert_fingerprint: "00:00"
+    idp_cert_fingerprint_algorithm: http://www.w3.org/2000/09/xmldsig#sha256
+
+production:
+  # Na serwerze testowym wyłączane w credentials (matomo.enabled: false) – patrz initializer.
+  matomo:
+    enabled: true

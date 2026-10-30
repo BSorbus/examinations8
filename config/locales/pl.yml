@@ -1,0 +1,275 @@
+# Teksty z poprzedniej wersji (examinations) przeniesione 1:1. Klucze oznaczone „nowe” – nowe elementy
+# interfejsu (do akceptacji urzędu); poprawiona literówka „korepondencyjny”.
+pl:
+  "true": "Tak"
+  "false": "Nie"
+  title: "UKE Egzaminy"
+  description: "Program „UKE Egzaminy” umożliwia zapisanie się na egzamin na świadectwo operatora urządzeń radiowych w służbach: amatorskiej oraz morskiej i żeglugi śródlądowej (LRC, SRC, IWC, VHF)."
+
+  layouts:
+    title: "UKE Egzaminy – Urząd Komunikacji Elektronicznej"
+    skip_to_content: "Przejdź do treści"
+    header:
+      organization:
+        - "Urząd Komunikacji"
+        - "Elektronicznej"
+      logo_alt: "UKE Egzaminy – Urząd Komunikacji Elektronicznej, strona główna"
+      menu: "Menu"
+      user_menu: "Konto"
+      theme:
+        label: "Wygląd strony"
+        light: "Tryb jasny"
+        dark: "Tryb ciemny"
+        contrast: "Wysoki kontrast"
+    footer:
+      brand: "Urząd Komunikacji Elektronicznej"
+      brand_address_1: "ul. Giełdowa 7/9"
+      brand_address_2: "01-211 Warszawa"
+      brand_note: "Regulator rynku telekomunikacyjnego i pocztowego"
+      contact: "Kontakt: służba radioamatorska"
+      contact_mail: "wml@uke.gov.pl"
+      contact_mor: "Kontakt: służba morska i żegluga śródlądowa"
+      contact_mor_mail: "ske.gdynia@uke.gov.pl"
+      contact_phone: "+48 22 53 49 125"
+      links: "Zobacz też"
+      uke_url: "https://uke.gov.pl"
+
+  pages:
+    home:
+      title: "UKE Egzaminy"
+      slide_0: "1. Zgłoś się na egzamin przez internet."
+      slide_1: "2. Czekaj na potwierdzenie przyjęcia zgłoszenia"
+      slide_2: "3. Przyjdź na egzamin!"
+      steps_label: "Jak to działa?" # nowe
+      dev_login: "Zaloguj (development – bez WSO2)" # nowe
+    declaration:
+      title: "Deklaracja dostępności"
+      navbar: "Deklaracja dostępności"
+
+  proposals:
+    status_id_1_name: "Zgłoszenie utworzone"
+    status_id_2_name: "Zgłoszenie zaakceptowane"
+    status_id_3_name: "Zgłoszenie odrzucone"
+    status_id_4_name: "Zgłoszenie zamknięte"
+    status_id_5_name: "Zgłoszenie anulowane"
+    status_id_6_name: "Zgłoszenie zamknięte - Wynik egzaminu: Negatywny bez prawa do poprawki"
+    status_id_7_name: "Zgłoszenie zamknięte - Wynik egzaminu: Negatywny z prawem do poprawki"
+    status_id_8_name: "Zgłoszenie zamknięte - Wynik egzaminu: Nieobecny"
+    status_id_9_name: "Zgłoszenie zamknięte - Wynik egzaminu: Pozytywny"
+    status_id_10_name: "Zgłoszenie zamknięte - Z powodu wniosku o zmianę terminu egzaminu"
+    status_comments:
+      1: "Status \"Zgłoszenie utworzone\" oznacza, że Twoje zgłoszenie oczekuje na weryfikację. Dopiero po analizie merytorycznej otrzyma ono status \"Zgłoszenie zaakceptowane\" (lub \"Zgłoszenie odrzucone\"), o czym zostaniesz poinformowany wiadomością wysłaną na Twój e-mail. Tylko zgłoszenia o statusie <strong>\"Zgłoszenie zaakceptowane\"</strong> upoważniają do udziału w egzaminie.<br>...Sprawdzaj status zgłoszenia i czekaj na wiadomość!"
+      2: "Status \"Zgłoszenie zaakceptowane\" oznacza, że Twoje zgłoszenie przeszło pozytywnie weryfikację i zostałeś zapisany na egzamin."
+      3: "Status \"Zgłoszenie odrzucone\" oznacza, że Twoje zgłoszenie zostało zweryfikowane negatywnie.<br>...Spróbuj raz jeszcze i ponownie utwórz zgłoszenie!"
+      4: "Status \"Zgłoszenie zamknięte\" oznacza, że Twoje zgłoszenie nie jest już procedowane.<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+      5: "Status \"Zgłoszenie anulowane\" oznacza, że Twoje zgłoszenie nie jest już procedowane.<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+      6: "Status \"Zgłoszenie zamknięte - Wynik egzaminu: Negatywny bez prawa do poprawki\".<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+      7: "Status \"Zgłoszenie zamknięte - Wynik egzaminu: Negatywny z prawem do poprawki\".<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+      8: "Status \"Zgłoszenie zamknięte - Wynik egzaminu: Nieobecny\".<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+      9: "Status \"Zgłoszenie zamknięte - Wynik egzaminu: Pozytywny\".<br>...Czekaj na dokument potwierdzający Twoje uprawnienia.!"
+      10: "Status \"Zgłoszenie zamknięte - Z powodu wniosku o zmianę terminu egzaminu\".<br>...Utwórz nowe jeżeli chciałbyś wziąć udział w egzaminie!"
+    # Sekcje w kolejności kroków kreatora (nowa kolejność: egzamin jako krok 1).
+    sections:
+      step1: "Służba, rodzaj i sesja"
+      step2: "Dane podstawowe"
+      step3: "Adres korespondencyjny"
+      step4: "Opłata i załączniki" # nowe: „Opłata i” (dawniej „Załączniki”)
+      step5: "Podsumowanie"
+    index:
+      title: "Zgłoszenia"
+      navbar: "Zgłoszenia"
+      no_data: "Brak zgłoszeń"
+      no_data_comment: "Aktualnie nie masz zarejestowanych żadnych zgłoszeń. Wybierz przycisk \"Utwórz Zgłoszenie\" aby utworzyć i wysłać elektroniczne zgłoszenie na egzamin."
+      create: "Utwórz Zgłoszenie"
+      drafts: "Niedokończone zgłoszenia" # nowe
+      drafts_note: "Zgłoszenia, które nie zostały wysłane. Niedokończone zgłoszenia są usuwane po 30 dniach." # nowe
+      draft_updated: "ostatnia zmiana: %{date}" # nowe
+      continue: "Dokończ" # nowe
+      sending_uncertain: "Wysyłanie nie zostało potwierdzone – dokończ, aby wysłać ponownie." # nowe
+    proposal:
+      rec_info: "Zgłoszenie %{data}"
+      navbar: "Zgłoszenie"
+    show:
+      title: "Zgłoszenie"
+      attachment_open: "Otwórz" # nowe
+      history: "Historia zgłoszenia" # nowe
+    testportal:
+      title: "Przystąp do Egzaminu"
+      title_grades: "Testy"
+      info_html: >-
+        <p>Uwaga!</p>
+        <p>Cały egzamin składa się z 4 testów (przedmiotów), po 8 pytań z każdego przedmiotu, czyli łącznie z 32 pytania testowe.
+        Do każdego pytania wybierz tylko jedną odpowiedź.</p>
+        <p>Na udzielenie 8 odpowiedzi z każdego przedmiotu masz 8 minut. Możesz przechodzić między pytaniami w dowolnej kolejności, nie musisz odpowiadać od razu - możesz pominąć trudniejsze i wrócić do nich później, system zapamiętuje Twoje zaznaczone odpowiedzi.</p>
+        <p>Możesz robić przerwy pomiędzy przedmiotami, ale cały egzamin musisz odbyć w trakcie czasu przeznaczonego na daną sesję.
+        Możesz zdawać przedmioty w dowolnej kolejności.</p>
+        <p>Rozwiązuj testy bez niedozwolonych pomocy, bo może to skutkować niezaliczeniem testu ! System posiada zabezpieczenia, uniemożliwiające udzielanie odpowiedzi w sposób niesamodzielny. W czasie udzielania odpowiedzi, nie klikaj poza okno testu.
+        O wyniku egzaminu zostaniesz powiadomiony osobnym mailem, po zatwierdzeniu wyników przez Komisję Egzaminacyjną, najczęściej w następnym dniu roboczym.</p>
+        <p>Powodzenia na egzaminie!</p>
+      next_test: "Przejdź do następnego testu."
+      all_done: "Udzieliłeś odpowiedzi na pytania we wszystkich testach. O wyniku egzaminu zostaniesz poinformowany osobnym mailem, po zatwierdzeniu wyników przez Komisję Egzaminacyjną (najczęściej w następnym dniu roboczym)."
+      frame_title: "Test egzaminacyjny" # nowe
+    events:
+      submitted: "Zgłoszenie wysłane" # nowe
+      annulled: "Zgłoszenie anulowane przez użytkownika" # nowe
+      netpar_update: "Zmiana w systemie NETPAR" # nowe
+      mail: "Wysłano wiadomość e-mail" # nowe
+    wizard:
+      title: "Kreator Zgłoszenia"
+      next_step: "Dalej"
+      previous_step: "Wstecz"
+      submit: "Zapisz i wyślij zgłoszenie!"
+      save_and_summary: "Zapisz i wróć do podsumowania" # nowe
+      change: "Zmień" # nowe
+      progress_label: "Kroki zgłoszenia" # nowe
+      step_of: "Krok %{current} z %{total}" # nowe
+      documents_html: >-
+        <p>Do poprawnej rejestracji zgłoszenia będziesz potrzebował(-a) dołączyć następujące dokumenty (w formacie PDF):</p>
+        <ul>
+        <li>Potwierdzenie dokonania wpłaty: w tytule przelewu wpisać: „za przeprowadzenie egzaminu amatorskiego”<br>
+        Urząd Komunikacji Elektronicznej<br>ul. Giełdowa 7/9<br>01-211 Warszawa<br>Nr konta: 75 1010 1010 0060 4422 3100 0000</li>
+        <li>W przypadku osób niepełnoletnich skan pisemnej zgody opiekuna prawnego na przystąpienie do egzaminu.</li>
+        </ul>
+      step1:
+        sessions_hint: "Lista sesji, które odbędą się nie wcześniej niż za %{days} dni, dla których dostępne są jeszcze wolne miejsca."
+        choose_category: "Wybierz służbę" # nowe
+        choose_division: "Wybierz Rodzaj"
+        show: "Pokaż" # nowe
+        province: "Województwo" # nowe
+        all_provinces: "Wszystkie" # nowe
+        online: "online" # nowe
+        no_sessions: "Brak sesji z wolnymi miejscami dla wybranego rodzaju świadectwa." # nowe
+        correction_locked: "W zgłoszeniu na egzamin poprawkowy służba i rodzaj są takie jak w poprzednim zgłoszeniu." # nowe
+      step2:
+        account_note: "Imię, nazwisko i adres e-mail pochodzą z Twojego konta UKE." # nowe
+      step3:
+        address_search: "Wyszukaj adres"
+        address_hint: "W polu \"Adres\" wyrazy oddzielaj spacją. Np. osielsko grzybowa lub fordońska 85-79"
+        not_found_hint: "Wyłącz \"Mieszkam w Polsce\" (odznacz checkbox) jeżeli nie możesz znaleźć swojego adresu."
+        selected: "Wybrany adres:" # nowe
+        no_results: "Brak adresów – spróbuj innych słów." # nowe
+        type_more: "Wpisz co najmniej 3 znaki." # nowe
+        numbers: "numery:"
+      step4:
+        payment: "Dane do przelewu" # nowe
+        amount: "Kwota" # nowe
+        recipient: "Odbiorca" # nowe
+        account: "Numer konta" # nowe
+        transfer_title: "Tytuł przelewu" # nowe
+        transfer_title_value: "za przeprowadzenie egzaminu amatorskiego"
+        copy: "Kopiuj" # nowe
+        copied: "Skopiowano" # nowe
+        current_file: "Dołączony plik: %{name}" # nowe
+        bank_pdf_hint: "Bankowe potwierdzenie wykonania przelewu winnno być plikiem typu \"pdf\" pobranym ze strony WWW Twojego banku."
+        face_image_hint: "Należy dołączać aktualne zdjęcie, odzwierciedlające wizerunek twarzy w sposób niebudzący wątpliwości, o wymiarach 35×45 mm, minimalnej rozdzielczości 300 dpi, wykonane na jednolitym jasnym tle, mające dobrą ostrość oraz odwzorowujące naturalny kolor skóry, obejmujące wizerunek od wierzchołka głowy do górnej części barków, tak aby twarz zajmowała 70–80% zdjęcia, pokazujące wyraźnie oczy, zwłaszcza źrenice i przedstawiające osobę w pozycji frontalnej, bez nakrycia głowy i okularów z ciemnymi szkłami, patrzącą na wprost z otwartymi oczami, nieprzesłoniętymi włosami, z naturalnym wyrazem twarzy i zamkniętymi ustami (podobnie jak zdjęcia do dowodu osobistego lub paszportu)."
+        consent_pdf_hint: "W przypadku gdy Zgłoszenie składane jest przez osobę niepełnoletnią należy dołączać upoważnienie rodzica lub prawnego opiekuna."
+        other_pdf_hint: "Jeżeli chcesz przekazać inny załącznik (format pdf), to umieść go w polu \"inny załącznik\"."
+        no_fee: "Brak opłaty dla wybranego rodzaju świadectwa – skontaktuj się z urzędem." # nowe
+
+  privacy_consents:
+    show:
+      title: "Klauzula informacyjna dotycząca przetwarzania danych osobowych" # z dokumentu klauzuli
+      lead: "Aby korzystać z aplikacji, zapoznaj się z informacją i zaakceptuj ją." # nowe
+      content_label: "Treść informacji o przetwarzaniu danych osobowych" # nowe
+      accept: "Akceptuję" # nowe
+      decline: "Nie akceptuję – wyloguj" # nowe
+
+  netpar:
+    unavailable: "System NETPAR jest chwilowo niedostępny. Spróbuj ponownie za kilka minut." # nowe
+    rejected: "Zgłoszenie nie zostało przyjęte przez system NETPAR: %{messages}" # nowe
+  teryt:
+    unavailable: "Wyszukiwarka adresów TERYT jest chwilowo niedostępna. Spróbuj ponownie za kilka minut." # nowe
+  lookups:
+    unavailable: "Wyszukiwarka adresów jest chwilowo niedostępna." # nowe
+
+  activerecord:
+    models:
+      user: "Użytkownik"
+      proposal: "Zgłoszenie"
+    attributes:
+      proposal:
+        status: "Status"
+        status_name: "Status zgłoszenia"
+        creator: "Użytkownik"
+        email: "Email"
+        name: "Nazwisko"
+        given_names: "Imię"
+        pesel: "Pesel"
+        citizenship_code: "Obywatelstwo (kraj)"
+        birth_date: "Data urodzenia"
+        birth_place: "Miejsce urodzenia"
+        family_name: "Nazwisko rodowe"
+        phone: "Telefon"
+        lives_in_poland: "Mieszkam w Polsce"
+        address_combine_id: "Adres"
+        province_name: "Województwo"
+        district_name: "Powiat"
+        commune_name: "Gmina"
+        city_name: "Miejscowość"
+        street_name: "Ulica"
+        c_address_house: "Dom"
+        c_address_number: "Lokal"
+        c_address_postal_code: "Kod pocztowy"
+        esod_category: "Rodzaj wniosku"
+        category: "Służba"
+        category_name: "Służba"
+        exam_id: "Sesja egzaminacyjna"
+        exam_fullname: "Sesja egzaminacyjna"
+        exam_date_exam: "Data egzaminu"
+        exam_online: "Sesja online"
+        division_id: "Rodzaj"
+        division_fullname: "Rodzaj"
+        division_min_years_old: "Minimalny wiek"
+        exam_fee_id: "Opłata"
+        exam_fee_price: "Wymagana opłata"
+        bank_pdf: "Bankowe potwierdzenie wykonania przelewu"
+        face_image: "Zdjęcie"
+        consent_pdf: "Zgoda prawnego opiekuna"
+        other_pdf: "Inny załącznik"
+        remove_other_pdf: "Usuń \"inny załącznik\""
+        confirm_that_the_data_is_correct: "Dane powyższe są zgodne z prawdą, co potwierdzam"
+        not_approved_comment: "Powód odrzucenia/zamknięcia/zmiany zgłoszenia"
+    errors:
+      messages:
+        accepted: "Musisz potwierdzić poprawność danych"
+    successfull:
+      messages:
+        created: "Wpis: \"%{data}\" został pomyślnie utworzony."
+        destroyed: "Wpis: \"%{data}\" został pomyślnie usunięty."
+        annulled: "Wpis: \"%{data}\" został pomyślnie anulowany."
+
+  errors:
+    format: "%{attribute} %{message}"
+    summary: # nowe (jak w confirmation8)
+      one: "Popraw 1 pole, aby kontynuować"
+      few: "Popraw %{count} pola, aby kontynuować"
+      many: "Popraw %{count} pól, aby kontynuować"
+      other: "Popraw %{count} pola, aby kontynuować"
+
+  pundit:
+    default: "BRAK UPRAWNIEŃ: Nie można wykonać tej czynności!"
+
+  helpers:
+    select:
+      prompt: "Proszę wybrać"
+    links:
+      index: "Lista"
+      show: "Pokaż szczegóły"
+      back: "Powrót"
+      destroy: "Usuń"
+      confirm_destroy: "Na pewno chcesz usunąć wpis: \"%{data}\"?"
+      confirm_annulled: "Na pewno chcesz anulować \"%{data}\"?"
+      confirm_create_correction_exam: "Chcesz utworzyć Zgłoszenie na egzamin poprawkowy?"
+      annulled: "Anuluj zgłoszenie"
+      create_correction_exam: "Utwórz Zgłoszenie na egzamin poprawkowy"
+      take_test: "Przystąp do egzaminu"
+      sign_in: "Zaloguj"
+      sign_out: "Wyloguj"
+
+  date:
+    formats:
+      default: "%Y-%m-%d"
+  time:
+    formats:
+      default: "%Y-%m-%d %H:%M:%S"
+      short: "%Y-%m-%d %H:%M"

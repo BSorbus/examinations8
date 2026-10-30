@@ -1,0 +1,23 @@
+# Ta sama struktura bazy co w poprzedniej wersji (examinations) – na produkcji ta sama baza.
+# Dane dostępowe: zmienne środowiskowe > credentials (database: host, port, name, username, password).
+<% db = Rails.application.credentials[:database] || {} %>
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { db[:host] || "localhost" } %>
+  port: <%= ENV.fetch("DATABASE_PORT") { db[:port] || 5432 } %>
+  username: <%= ENV.fetch("DATABASE_USERNAME") { db[:username] } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { db[:password] } %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME") { db[:name] || "examinations8_development" } %>
+
+test:
+  <<: *default
+  database: examinations8_test
+
+production:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME") { db[:name] } %>

@@ -1,0 +1,68 @@
+<% content_for :title, "#{t(".title")} – #{t("layouts.title")}" %>
+<section class="hero">
+  <div class="hero__inner">
+    <h1><%= t(".title") %></h1>
+  </div>
+</section>
+
+<div class="page">
+  <%= render "shared/flash" %>
+
+  <% if @drafts.any? %>
+    <section class="card" aria-labelledby="drafts_heading">
+      <h2 id="drafts_heading"><%= t(".drafts") %></h2>
+      <p class="field__hint"><%= t(".drafts_note") %></p>
+      <ul class="proposal-list">
+        <% @drafts.each do |draft| %>
+          <li class="proposal-item">
+            <h3><%= draft.rec_info %></h3>
+            <p class="field__hint"><%= t(".draft_updated", date: l(draft.updated_at, format: :short)) %></p>
+            <% if draft.status == Proposal::REQUIRED_PUSH_TO_NETPAR %>
+              <p class="status status--warn"><%= t(".sending_uncertain") %></p>
+            <% end %>
+            <div class="actions">
+              <%= link_to t(".continue"), proposal_wizard_path(draft, draft.next_step), class: "btn btn-primary btn-sm" %>
+              <% if policy(draft).destroy? %>
+                <%= button_to t("helpers.links.destroy"), proposal_path(draft), method: :delete, class: "btn btn-outline-primary btn-sm",
+                              form: { data: { turbo_confirm: t("helpers.links.confirm_destroy", data: draft.rec_info) } } %>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <section class="card" aria-labelledby="proposals_heading">
+    <div class="section-head">
+      <h2 id="proposals_heading"><%= t(".title") %></h2>
+      <% if policy(Proposal).create? %>
+        <%= button_to t(".create"), proposals_path, class: "btn btn-primary" %>
+      <% end %>
+    </div>
+    <% if @proposals.any? %>
+      <ul class="proposal-list">
+        <% @proposals.each do |proposal| %>
+          <li class="proposal-item">
+            <h3><%= proposal.rec_info %></h3>
+            <p class="field__hint"><%= proposal.exam_fullname %></p>
+            <p class="status <%= status_class(proposal) %>"><%= proposal.status_name %></p>
+            <div class="actions">
+              <%= link_to t("helpers.links.show"), proposal_path(proposal), class: "btn btn-outline-primary btn-sm" %>
+              <% if policy(proposal).correction_exam? %>
+                <%= button_to t("helpers.links.create_correction_exam"), correction_exam_proposal_path(proposal), class: "btn btn-primary btn-sm",
+                              form: { data: { turbo_confirm: t("helpers.links.confirm_create_correction_exam") } } %>
+              <% end %>
+              <% if policy(proposal).testportal? && proposal.exam_date_exam == Time.zone.today %>
+                <%= link_to t("helpers.links.take_test"), testportal_proposal_path(proposal), class: "btn btn-primary btn-sm" %>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p><strong><%= t(".no_data") %></strong></p>
+      <p><%= t(".no_data_comment") %></p>
+    <% end %>
+  </section>
+</div>

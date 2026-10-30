@@ -1,0 +1,5 @@
+<% { notice: "notice", alert: "alert", warning: "warning" }.each do |type, css| %>
+  <% if flash[type].present? %>
+    <div class="flash flash--<%= css %>" role="<%= type == :notice ? "status" : "alert" %>"><%= flash[type] %></div>
+  <% end %>
+<% end %>

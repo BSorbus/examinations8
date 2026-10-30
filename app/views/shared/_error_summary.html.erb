@@ -1,0 +1,11 @@
+<%# Podsumowanie błędów formularza (jak w confirmation8): liczba pól i odnośniki do nich. %>
+<% if record.errors.any? %>
+  <div class="error-summary" role="alert" tabindex="-1">
+    <p class="error-summary__title"><%= t("errors.summary", count: record.errors.attribute_names.size) %></p>
+    <ul>
+      <% record.errors.attribute_names.each do |attribute| %>
+        <li><a href="#proposal_<%= attribute %>"><%= record.errors.full_messages_for(attribute).first %></a></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

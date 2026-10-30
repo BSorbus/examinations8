@@ -1,0 +1,15 @@
+<%# Przyciski kreatora: Wstecz (bez zapisu) i Dalej / zapis. %>
+<% index = Proposal::FORM_STEPS.index(@step) %>
+<%= hidden_field_tag :return_to_summary, 1 if params[:return_to_summary].present? %>
+<div class="form-actions">
+  <div class="form-actions__buttons">
+    <% if index.positive? && params[:return_to_summary].blank? %>
+      <%= link_to t("proposals.wizard.previous_step"), proposal_wizard_path(@proposal, Proposal::FORM_STEPS[index - 1]), class: "btn btn-outline-primary" %>
+    <% end %>
+  </div>
+  <div class="form-actions__buttons">
+    <button type="submit" class="btn btn-primary">
+      <%= local_assigns[:label] || (params[:return_to_summary].present? ? t("proposals.wizard.save_and_summary") : t("proposals.wizard.next_step")) %>
+    </button>
+  </div>
+</div>

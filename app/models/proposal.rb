@@ -62,7 +62,10 @@ class Proposal < ApplicationRecord
   validates :category, presence: true, inclusion: { in: CATEGORY_NAMES.keys }, if: STEP1
   validates :division_id, presence: true, if: [ STEP1, -> { category.present? } ]
   validates :exam_id, presence: true, if: [ STEP1, -> { division_id.present? } ]
-  validate :unique_division_for_creator, if: [ STEP1, -> { division_id.present? } ]
+  # Jedno zgłoszenie w toku na rodzaj – wg NETPAR (netpar_proposals: lista z GET /proposals?creator_id=, ustawiana przed
+  # walidacją po „Dalej” na zakładce 1 i przy wysłaniu). Bez listy reguła jest pomijana (pozostałe zakładki).
+  attr_accessor :netpar_proposals
+  validate :unique_division_for_creator, if: [ STEP1, -> { division_id.present? && !netpar_proposals.nil? } ]
 
   validates :email, presence: true, format: { with: /\A[^@\s]+@[^@\s]+\z/ }, if: STEP2
   validates :name, presence: true, length: { in: 1..160 }, if: STEP2
@@ -214,12 +217,17 @@ class Proposal < ApplicationRecord
   # Wymóg zdjęcia – z NETPAR (ustawienie rodzaju świadectwa „Wymagane zdjęcie”).
   def face_image_required? = division_face_image_required?
 
-  # Dane osobowe z konta UKE (WSO2). Imię, nazwisko i e-mail – zawsze z konta (na formularzu niezmienialne);
-  # pozostałe – tylko puste, żeby powrót na zakładkę 1 nie nadpisał danych poprawionych na zakładce 2.
+  # Dane osobowe z konta UKE (WSO2) – podpowiedź na formularzu zakładki 2 (zapis dopiero po „Dalej” na zakładce 2).
+  # Imię, nazwisko i e-mail – zawsze z konta (na formularzu niezmienialne); pozostałe – tylko puste pola,
+  # żeby nie nadpisać danych już poprawionych przez użytkownika.
   def fill_from_profile(user)
-    self.email, self.name, self.given_names = user.email, user.last_name.to_s, user.first_name.to_s
+    assign_account_identity(user)
     { pesel: user.pesel.to_s, birth_date: user.birth_date || Pesel.new(user.pesel).birth_date, birth_place: user.birth_city.to_s,
       family_name: user.family_name.to_s, phone: user.phone.to_s }.each { |attribute, value| self[attribute] = value if self[attribute].blank? }
+  end
+
+  def assign_account_identity(user)
+    self.email, self.name, self.given_names = user.email, user.last_name.to_s, user.first_name.to_s
   end
 
   def consent_pdf_required? = birth_date.present? && birth_date >= Time.zone.today - 18.years
@@ -284,10 +292,11 @@ class Proposal < ApplicationRecord
     end
 
     def unique_division_for_creator
-      duplicate = Proposal.where(division_id:, creator_id:, confirm_that_the_data_is_correct: true,
-                                 proposal_status_id: [ PROPOSAL_STATUS_CREATED, PROPOSAL_STATUS_APPROVED ])
-                          .where.not(id:).where.not(exam_id: nil)
-      errors.add(:division_id, "Jest aktualnie procedowane Twoje zgłoszenie dla tego typu świadectwa") if duplicate.exists?
+      active = netpar_proposals.any? do |other|
+        other["division_id"] == division_id && other["multi_app_identifier"].to_s != multi_app_identifier.to_s &&
+          [ PROPOSAL_STATUS_CREATED, PROPOSAL_STATUS_APPROVED ].include?(other["proposal_status_id"])
+      end
+      errors.add(:division_id, "Jest aktualnie procedowane Twoje zgłoszenie dla tego typu świadectwa") if active
     end
 
     def min_years_old

@@ -29,6 +29,8 @@ class Proposals::StepsController < ApplicationController
     @proposal.form_step = @step
     @proposal.assign_attributes(step_params)
     send("apply_#{@step}")
+    # Zgłoszenia użytkownika w NETPAR – do reguły „jedno zgłoszenie w toku na rodzaj” (przy wysłaniu – w ProposalSubmission).
+    @proposal.netpar_proposals = netpar.proposals(creator_id: current_user.id) if @step == "step1"
 
     if @step == "step5"
       submit
@@ -72,9 +74,25 @@ class Proposals::StepsController < ApplicationController
         @divisions = @category.present? ? available_divisions(@category) : []
         @division_id = nil unless @divisions.any? { it["id"] == @division_id }
         @exams = @division_id ? available_exams(@category, @division_id) : []
+        @other_drafts = other_drafts
+      when "step2"
+        # Podpowiedź w formularzu: puste pola – dane z konta UKE (tylko na ekranie; zapis po „Dalej” na zakładce 2).
+        @proposal.fill_from_profile(current_user)
       when "step4"
         assign_exam_fee if @proposal.exam_fee_id.blank?
       end
+    end
+
+    # Podpowiedź na zakładce 1 (bez blokady): inne niedokończone zgłoszenia użytkownika, zawężane wyborem –
+    # bez służby: wszystkie; ze służbą: bez służby i tej służby; z rodzajem: bez służby, tej służby bez rodzaju i tego rodzaju.
+    def other_drafts
+      drafts = current_user.proposals.drafts.where.not(id: @proposal.id).order(updated_at: :desc)
+      return drafts if @category.blank?
+
+      without_category = drafts.where(category: [ nil, "" ])
+      return without_category.or(drafts.where(category: @category)) if @division_id.blank?
+
+      without_category.or(drafts.where(category: @category, division_id: [ nil, @division_id ]))
     end
 
     def available_divisions(category = @proposal.category)
@@ -105,11 +123,12 @@ class Proposals::StepsController < ApplicationController
       division ? @proposal.assign_division(netpar.division(division["id"]) || division) : @proposal.reset_division
       exam ? @proposal.assign_exam(netpar.exam(exam["id"]) || exam) : @proposal.reset_exam
       @proposal.clear_exam_fee
-      # Dane osobowe z konta UKE trafiają na formularz zakładki 2 dopiero teraz (po „Dalej” na zakładce 1).
-      @proposal.fill_from_profile(current_user)
     end
 
-    def apply_step2; end
+    # Imię, nazwisko i e-mail – z konta UKE (na formularzu tylko do odczytu); pozostałe dane – z formularza zakładki 2.
+    def apply_step2
+      @proposal.assign_account_identity(current_user)
+    end
 
     def apply_step3
       return @proposal.clear_teryt_address unless @proposal.lives_in_poland?

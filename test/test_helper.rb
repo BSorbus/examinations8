@@ -27,8 +27,14 @@ module ServiceStubs
 
   def stub_netpar_token = stub_request(:get, "#{NETPAR_URL}/token").to_return(json({ token: "tok-1" }))
 
+  # Zgłoszenia użytkownika w NETPAR (GET /proposals?creator_id=) – domyślnie brak.
+  def stub_netpar_proposals(rows = [])
+    stub_request(:get, "#{NETPAR_URL}/proposals").to_return(json({ proposals: rows, meta: { total_count: rows.size } }))
+  end
+
   def stub_netpar_catalog
     stub_netpar_token
+    stub_netpar_proposals
     stub_request(:get, "#{NETPAR_URL}/divisions").to_return(json({ divisions: [ division_a ], meta: { total_count: 1 } }))
     stub_request(:get, "#{NETPAR_URL}/divisions/18").to_return(json(division_a))
     stub_request(:get, "#{NETPAR_URL}/exams").to_return(json({ exams: [ exam_r ], meta: { total_count: 1 } }))

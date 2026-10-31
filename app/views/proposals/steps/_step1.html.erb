@@ -11,7 +11,7 @@
 <% else %>
   <%= form_with url: proposal_wizard_path(proposal, "step1"), method: :get, class: "form-section",
                 data: { controller: "auto-submit", turbo_action: "replace" } do %>
-    <div class="field-row">
+    <div class="field-row field-row--exam-choice">
       <div class="field">
         <%= label_tag :category, Proposal.human_attribute_name(:category), class: "field__label" %>
         <%= select_tag :category, options_for_select(Proposal::CATEGORY_NAMES.invert, @category),
@@ -31,6 +31,26 @@
       </div>
     </div>
   <% end %>
+<% end %>
+
+<% if @other_drafts.present? %>
+  <%# Podpowiedź – inne niedokończone zgłoszenia (zawężane wyborem służby i rodzaju): dokończyć, usunąć albo wypełniać dalej to. %>
+  <div class="note other-drafts" role="status">
+    <p><%= t("proposals.wizard.step1.other_drafts", count: @other_drafts.size) %></p>
+    <ul class="other-drafts__list">
+      <% @other_drafts.each do |draft| %>
+        <li>
+          <span><%= t("proposals.wizard.step1.other_draft_started", date: l(draft.created_at.to_date), choice: other_draft_choice(draft)) %></span>
+          <%= link_to t("proposals.wizard.step1.other_draft_continue"), proposal_wizard_path(draft, draft.next_step), class: "btn btn-primary btn-sm" %>
+          <% if policy(draft).destroy? %>
+            <%= button_to t("proposals.wizard.step1.other_draft_destroy"), proposal_path(draft, return_to: proposal.multi_app_identifier),
+                          method: :delete, class: "btn btn-outline-primary btn-sm",
+                          form: { data: { turbo_confirm: t("helpers.links.confirm_destroy", data: draft.rec_info) } } %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
 <% end %>
 
 <%= form_with model: proposal, url: proposal_wizard_path(proposal, "step1"), method: :patch, class: "form-section" do |f| %>

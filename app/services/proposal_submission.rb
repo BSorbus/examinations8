@@ -25,6 +25,7 @@ class ProposalSubmission
 
       @proposal.confirm_that_the_data_is_correct = @confirmed
       @proposal.form_step = nil
+      @proposal.netpar_proposals = @netpar.proposals(creator_id: @proposal.creator_id) # reguła „jedno w toku na rodzaj”
       return false unless @proposal.valid?
 
       uncertain_previous_attempt = @proposal.status == Proposal::REQUIRED_PUSH_TO_NETPAR

@@ -10,7 +10,9 @@ module Netpar
   #   GET    /exams {category:, division_id:, q:, page:, page_limit:}  sesje z wolnymi miejscami
   #   GET    /exams/:id                                sesja (m.in. fullname, date_exam, online)
   #   GET    /exam_fees/find {division_id:, esod_category:, for_date:}  opłata (price, price_under18)
-  #   POST   /proposals          proposal=<JSON>       nowe zgłoszenie → 201 (422 – odrzucone)
+  #   GET    /proposals {creator_id:}                  zgłoszenia użytkownika Egzaminów (komplet pól)
+  #   POST   /proposals          proposal=<JSON>       nowe zgłoszenie → 201 (200 – to samo multi_app_identifier;
+  #                                                   422 – odrzucone, m.in. drugie zgłoszenie w toku na ten sam rodzaj)
   #   PATCH  /proposals/:multi_app_identifier          zmiana zgłoszenia (np. anulowanie) → 200 (404 – brak w NETPAR)
   # Wysyłanie zgłoszenia jest idempotentne po naszej stronie (ProposalSubmission: przy ponowieniu najpierw PATCH).
   #   GET    /proposals/:multi_app_identifier/grades               testy egzaminu online (TestPortal)
@@ -46,6 +48,11 @@ module Netpar
     def exam_fee(division_id:, esod_category:, for_date:)
       response = request(:get, "exam_fees/find", body: { division_id:, esod_category:, for_date: for_date.to_s })
       response.is_a?(Net::HTTPNotFound) ? nil : parse(response, expect: "id", whole: true)
+    end
+
+    # Zgłoszenia użytkownika w NETPAR (źródło prawdy o statusie) – np. reguła „jedno zgłoszenie w toku na rodzaj”.
+    def proposals(creator_id:)
+      fetch_json(:get, "proposals", body: { creator_id: }, expect: "proposals")
     end
 
     def create_proposal(attributes)

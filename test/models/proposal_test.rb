@@ -51,12 +51,21 @@ class ProposalTest < ActiveSupport::TestCase
     assert_equal [ "Sopot", "Testowy" ], [ proposal.birth_place, proposal.name ]
   end
 
-  test "jedno procedowane zgłoszenie na rodzaj świadectwa" do
-    submitted_proposal(@user)
+  test "jedno procedowane zgłoszenie na rodzaj świadectwa – wg NETPAR (statusy 1 i 2, inny multi_app_identifier)" do
     proposal = @user.proposals.build(proposal_attributes)
     proposal.form_step = "step1"
+    netpar = ->(status, division_id: 18, uuid: SecureRandom.uuid) { { "multi_app_identifier" => uuid, "division_id" => division_id, "proposal_status_id" => status } }
+
+    proposal.netpar_proposals = [ netpar.(2) ]
     assert_not proposal.valid?
     assert_includes proposal.errors[:division_id], "Jest aktualnie procedowane Twoje zgłoszenie dla tego typu świadectwa"
+
+    proposal.netpar_proposals = [ netpar.(5), netpar.(9), netpar.(1, division_id: 20), netpar.(1, uuid: proposal.multi_app_identifier) ]
+    assert proposal.valid?, "zamknięte, inny rodzaj albo to samo zgłoszenie – bez blokady"
+
+    proposal.netpar_proposals = nil
+    submitted_proposal(@user) # zgłoszenie w toku tylko w naszej bazie – reguła pyta NETPAR, nie naszej bazy
+    assert proposal.valid?
   end
 
   test "zdjęcie: wymóg z NETPAR (face_image_required rodzaju), niezależnie od służby" do

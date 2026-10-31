@@ -140,6 +140,16 @@ pl:
         online: "online" # nowe
         no_sessions: "Brak sesji z wolnymi miejscami dla wybranego rodzaju świadectwa." # nowe
         correction_locked: "W zgłoszeniu na egzamin poprawkowy służba i rodzaj są takie jak w poprzednim zgłoszeniu." # nowe
+        other_drafts: # nowe
+          one: "Masz już inne niedokończone zgłoszenie. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
+          few: "Masz już %{count} inne niedokończone zgłoszenia. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
+          many: "Masz już %{count} innych niedokończonych zgłoszeń. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
+          other: "Masz już %{count} innych niedokończonych zgłoszeń. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
+        other_draft_started: "Zgłoszenie rozpoczęte %{date} – %{choice}" # nowe
+        other_draft_no_category: "bez wybranej służby" # nowe
+        other_draft_no_division: "bez wybranego rodzaju" # nowe
+        other_draft_continue: "Dokończ je" # nowe
+        other_draft_destroy: "Usuń je" # nowe
       step2:
         account_note: "Imię, nazwisko i adres e-mail pochodzą z Twojego konta UKE." # nowe
       step3:

@@ -3,6 +3,7 @@ require "test_helper"
 class ProposalSubmissionTest < ActiveSupport::TestCase
   setup do
     stub_netpar_token
+    stub_netpar_proposals
     @proposal = complete_proposal(create_user)
   end
 

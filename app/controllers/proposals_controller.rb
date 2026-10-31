@@ -12,7 +12,7 @@ class ProposalsController < ApplicationController
     authorize @proposal
   end
 
-  # Nowe zgłoszenie – kreator od zakładki 1; dane osobowe z konta UKE wpisuje dopiero przejście do zakładki 2.
+  # Nowe zgłoszenie – kreator od zakładki 1; dane osobowe zapisuje dopiero „Dalej” na zakładce 2.
   def create
     authorize Proposal
     proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_EGZAMIN)
@@ -24,7 +24,8 @@ class ProposalsController < ApplicationController
   def destroy
     authorize @proposal
     @proposal.destroy!
-    redirect_to proposals_path, notice: t("activerecord.successfull.messages.destroyed", data: @proposal.rec_info), status: :see_other
+    back = current_user.proposals.find_by(multi_app_identifier: params[:return_to].to_s) if params[:return_to].present?
+    redirect_to back ? proposal_wizard_path(back, Proposal::FORM_STEPS.first) : proposals_path, notice: t("activerecord.successfull.messages.destroyed", data: @proposal.rec_info), status: :see_other
   end
 
   # Unieważnienie: NETPAR i nasza baza razem. Blokada wiersza na czas operacji; błąd NETPAR wycofuje zmianę

@@ -1,5 +1,6 @@
 # Zgłoszenia dla NETPAR:
-#   GET   /api/v1/proposals/:multi_app_identifier – zgody RODO zgłaszającego i historia zgłoszenia (szczegóły w NETPAR),
+#   GET   /api/v1/proposals/:multi_app_identifier – zgłoszenie (komplet pól), a do tego zgody RODO zgłaszającego
+#         i historia zgłoszenia po stronie Egzaminów,
 #   PATCH /api/v1/proposals/:multi_app_identifier – zmiana: status (z komentarzem), sesja, odblokowanie testu online;
 #         każda zmiana statusu wysyła mail do użytkownika (Proposal#send_notification) i trafia do historii zgłoszenia.
 class Api::V1::ProposalsController < Api::V1::BaseController
@@ -7,17 +8,13 @@ class Api::V1::ProposalsController < Api::V1::BaseController
 
   before_action :set_proposal
 
-  # Tylko dane potrzebne urzędnikowi – dane z formularza zgłoszenia NETPAR już ma. valid_at_submission – zgoda
-  # obowiązująca w chwili wysłania zgłoszenia (ostatnia zaakceptowana przed submitted_at).
+  # Zgłoszenie jak w danych dla NETPAR (wszystkie kolumny) oraz dodatki: opis, zgody RODO (valid_at_submission – zgoda
+  # obowiązująca w chwili wysłania zgłoszenia, ostatnia zaakceptowana przed submitted_at) i historia zgłoszenia.
   def show
     consents = @proposal.creator.privacy_consents.order(:accepted_at, :id).to_a
     at_submission = @proposal.submitted_at && consents.select { it.accepted_at <= @proposal.submitted_at }.last
-    render json: {
-      multi_app_identifier: @proposal.multi_app_identifier,
+    render json: @proposal.as_json.merge(
       rec_info: @proposal.rec_info,
-      esod_category: @proposal.esod_category,
-      created_at: @proposal.created_at,
-      submitted_at: @proposal.submitted_at,
       privacy_current_version: PrivacyConsent.current_version,
       privacy_consents: consents.map do |consent|
         { version: consent.version, accepted_at: consent.accepted_at, ip: consent.ip, valid_at_submission: consent == at_submission }
@@ -25,7 +22,7 @@ class Api::V1::ProposalsController < Api::V1::BaseController
       events: @proposal.events.order(:created_at, :id).map do |event|
         { kind: event.kind, name: I18n.t("proposals.events.#{event.kind}"), created_at: event.created_at, data: event.data }
       end
-    }
+    )
   end
 
   def update

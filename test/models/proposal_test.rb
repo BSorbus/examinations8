@@ -31,13 +31,19 @@ class ProposalTest < ActiveSupport::TestCase
     assert_equal [ "Data urodzenia niezgodność danych z danymi PESEL" ], proposal.errors.full_messages
   end
 
-  test "minimalny wiek dla rodzaju świadectwa – po „Dalej” na zakładce 2, przy dacie urodzenia" do
-    proposal = @user.proposals.build(proposal_attributes(division_min_years_old: 18, birth_date: Date.current - 10.years, pesel: ""))
+  test "minimalny wiek – po „Dalej” na zakładce 2, przy dacie urodzenia, na dzień egzaminu" do
+    exam_day = Date.current + 30
+    proposal = @user.proposals.build(proposal_attributes(division_min_years_old: 18, exam_date_exam: exam_day, pesel: "",
+                                                         birth_date: exam_day - 18.years + 1.day)) # 18 lat kończy dzień po egzaminie
     proposal.form_step = "step1"
     assert proposal.valid?, "na zakładce 1 wiek nie jest sprawdzany"
     proposal.form_step = "step2"
     assert_not proposal.valid?
-    assert_equal [ "Data urodzenia - Przystąpienie do egzaminu wymaga ukończenia 18 lat" ], proposal.errors.full_messages
+    assert_equal [ "Data urodzenia - Przystąpienie do egzaminu wymaga ukończenia 18 lat w dniu egzaminu (#{exam_day.strftime('%d.%m.%Y')})" ],
+                 proposal.errors.full_messages
+
+    proposal.birth_date = exam_day - 18.years # 18 lat kończy w dniu egzaminu – dziś jeszcze niepełnoletni
+    assert proposal.valid?, "wiek liczony na dzień egzaminu, nie na dziś"
   end
 
   test "dane z konta UKE: imię, nazwisko, e-mail zawsze z konta; pozostałe tylko puste (powrót na zakładkę 1)" do
@@ -49,6 +55,32 @@ class ProposalTest < ActiveSupport::TestCase
     proposal.birth_place, proposal.name = "Sopot", "Inne"
     proposal.fill_from_profile(@user)
     assert_equal [ "Sopot", "Testowy" ], [ proposal.birth_place, proposal.name ]
+  end
+
+  test "ulga w opłacie i zgoda opiekuna – wg wieku w dniu egzaminu (rodzaj dostępny dla niepełnoletnich, np. SRC – 15 lat)" do
+    exam_day = Date.current + 30
+    fee = { "id" => 10, "price" => "75.0", "price_under18" => "50.0" }
+    proposal = @user.proposals.build(proposal_attributes(division_min_years_old: 15, exam_date_exam: exam_day, pesel: ""))
+    proposal.form_step = "step2"
+
+    proposal.birth_date = exam_day - 18.years # w dniu egzaminu kończy 18 lat – stawka zwykła, bez zgody opiekuna
+    proposal.assign_exam_fee(fee)
+    assert proposal.valid?
+    assert_equal [ 75, false ], [ proposal.exam_fee_price, proposal.consent_pdf_required? ]
+
+    proposal.birth_date = exam_day - 17.years # w dniu egzaminu 17 lat (wymóg 15 spełniony) – ulga i zgoda opiekuna
+    proposal.assign_exam_fee(fee)
+    assert proposal.valid?
+    assert_equal [ 50, true ], [ proposal.exam_fee_price, proposal.consent_pdf_required? ]
+  end
+
+  test "rodzaj z wymogiem 18 lat: osoba niepełnoletnia w dniu egzaminu zatrzymana na zakładce 2 (do ulgi nie dochodzi)" do
+    exam_day = Date.current + 30
+    proposal = @user.proposals.build(proposal_attributes(division_min_years_old: 18, exam_date_exam: exam_day, pesel: "",
+                                                         birth_date: exam_day - 17.years))
+    proposal.form_step = "step2"
+    assert_not proposal.valid?
+    assert_includes proposal.errors[:birth_date].first, "wymaga ukończenia 18 lat w dniu egzaminu"
   end
 
   test "jedno procedowane zgłoszenie na rodzaj świadectwa – wg NETPAR (statusy 1 i 2, inny multi_app_identifier)" do

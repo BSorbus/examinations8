@@ -76,7 +76,7 @@ class Proposal < ApplicationRecord
   validates :birth_date, presence: true, if: STEP2
   validates :family_name, presence: true, length: { in: 1..50 }, if: STEP2
   validate :pesel_valid, if: [ STEP2, -> { pesel.present? } ]
-  # Wiek – po „Dalej” na zakładce 2 (data urodzenia jest na tym formularzu), wymóg rodzaju z NETPAR.
+  # Wiek – po „Dalej” na zakładce 2 (data urodzenia jest na tym formularzu), wymóg rodzaju z NETPAR, na dzień egzaminu.
   validate :min_years_old, if: [ STEP2, -> { division_min_years_old.present? && birth_date.present? } ]
 
   validates :address_combine_id, presence: true, if: [ STEP3, :lives_in_poland? ]
@@ -168,7 +168,7 @@ class Proposal < ApplicationRecord
     self.exam_online = exam["online"] == true
   end
 
-  # Krok 4: opłata z NETPAR (cena ulgowa dla osób, które nie ukończyły 18 lat).
+  # Krok 4: opłata z NETPAR (cena ulgowa dla osób, które w dniu egzaminu nie ukończą 18 lat).
   def assign_exam_fee(fee)
     self.exam_fee_id = fee["id"]
     self.exam_fee_price = under_18? ? fee["price_under18"] : fee["price"]
@@ -230,9 +230,14 @@ class Proposal < ApplicationRecord
     self.email, self.name, self.given_names = user.email, user.last_name.to_s, user.first_name.to_s
   end
 
-  def consent_pdf_required? = birth_date.present? && birth_date >= Time.zone.today - 18.years
+  # Zgoda opiekuna i ulga w opłacie – dla osób, które w dniu egzaminu nie ukończą 18 lat (jak minimalny wiek;
+  # w poprzedniej wersji liczone na dzień zgłoszenia).
+  def consent_pdf_required? = under_18?
 
-  def under_18? = birth_date.present? && birth_date >= 18.years.ago.to_date
+  def under_18? = birth_date.present? && birth_date + 18.years > age_reference_date
+
+  # Dzień, na który liczymy wiek (minimalny wiek, ulga, zgoda opiekuna): dzień egzaminu; przed wyborem sesji – dziś.
+  def age_reference_date = exam_date_exam || Time.zone.today
 
   # Linki do załączników dla NETPAR (urzędnik otwiera je z poziomu NETPAR).
   def update_attachment_paths
@@ -299,10 +304,14 @@ class Proposal < ApplicationRecord
       errors.add(:division_id, "Jest aktualnie procedowane Twoje zgłoszenie dla tego typu świadectwa") if active
     end
 
+    # Minimalny wiek (NETPAR: „[ukończone N lat]”) – na dzień egzaminu (sesja wybrana na zakładce 1), nie na dzień zgłoszenia
+    # (w poprzedniej wersji liczony na dziś – osoba kończąca wymagany wiek przed egzaminem nie mogła się zapisać).
     def min_years_old
-      if birth_date + division_min_years_old.years > Time.zone.today
-        errors.add(:birth_date, "- Przystąpienie do egzaminu wymaga ukończenia #{division_min_years_old} lat")
-      end
+      on_date = age_reference_date
+      return if birth_date + division_min_years_old.years <= on_date
+
+      # nowe: „w dniu egzaminu (…)” – do akceptacji urzędu
+      errors.add(:birth_date, "- Przystąpienie do egzaminu wymaga ukończenia #{division_min_years_old} lat w dniu egzaminu (#{on_date.strftime('%d.%m.%Y')})")
     end
 
     def attachments_present

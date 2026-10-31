@@ -12,6 +12,7 @@ class ProposalPolicy < ApplicationPolicy
 
   def annul? = own? && record.can_annul? && can?("proposal:update_self")
 
+  # Informacja „Masz prawo do egzaminu poprawkowego” (zgłoszenie z prawem do poprawki wg NETPAR).
   def correction_exam? = own? && record.can_correction_exam? && can?("proposal:create_self")
 
   def testportal? = own? && record.can_take_tests? && can?("proposal:show_self")

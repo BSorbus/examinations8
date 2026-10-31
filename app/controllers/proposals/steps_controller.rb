@@ -12,6 +12,7 @@ class Proposals::StepsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :set_proposal_and_step
+  before_action :refresh_esod_category, only: :show
   before_action :require_previous_steps
 
   rescue_from Netpar::Unavailable, Teryt::Unavailable do |e|
@@ -30,7 +31,7 @@ class Proposals::StepsController < ApplicationController
     @proposal.assign_attributes(step_params)
     send("apply_#{@step}")
     # Zgłoszenia użytkownika w NETPAR – do reguły „jedno zgłoszenie w toku na rodzaj” (przy wysłaniu – w ProposalSubmission).
-    @proposal.netpar_proposals = netpar.proposals(creator_id: current_user.id) if @step == "step1"
+    @proposal.netpar_proposals = creator_netpar_proposals if @step == "step1"
 
     if @step == "step5"
       submit
@@ -52,6 +53,20 @@ class Proposals::StepsController < ApplicationController
       raise ActionController::RoutingError, "Nieznany krok" unless Proposal::FORM_STEPS.include?(@step)
     end
 
+    # Powrót do szkicu: prawo do egzaminu poprawkowego mogło się zmienić (np. porzucony szkic, a w międzyczasie inne
+    # zgłoszenie oblane z prawem do poprawki) – inny rodzaj wniosku: zakładka 4 od nowa, kreator najdalej od zakładki 4
+    # (require_previous_steps). NETPAR niedostępny – bez zmian (sprawdzi wysłanie, ProposalSubmission).
+    def refresh_esod_category
+      return if @proposal.division_id.blank?
+      return unless @proposal.change_esod_category(@proposal.esod_category_for(creator_netpar_proposals))
+
+      @proposal.save!(validate: false)
+      redirected = Proposal::FORM_STEPS.index(@step) > Proposal::FORM_STEPS.index(@proposal.next_step)
+      (redirected ? flash : flash.now)[:notice] = t("proposals.wizard.esod_category_changed", name: @proposal.esod_category_name)
+    rescue Netpar::Unavailable => e
+      Rails.logger.error("[NETPAR] #{e.message}")
+    end
+
     # Kroki po kolei – bez przeskakiwania niewypełnionych.
     def require_previous_steps
       allowed = Proposal::FORM_STEPS.index(@proposal.next_step)
@@ -69,11 +84,15 @@ class Proposals::StepsController < ApplicationController
       when "step1"
         @divisions, @exams = [], [] # gdy NETPAR nie odpowie – puste listy i komunikat
         @category = params[:category].presence_in(Proposal::CATEGORY_NAMES.keys) || @proposal.category
-        @category = @proposal.category if @proposal.correction_exam?
-        @division_id = (@proposal.correction_exam? ? @proposal.division_id : (params[:division_id].presence || @proposal.division_id)).to_i
+        @division_id = (params[:division_id].presence || @proposal.division_id).to_i
         @divisions = @category.present? ? available_divisions(@category) : []
         @division_id = nil unless @divisions.any? { it["id"] == @division_id }
         @exams = @division_id ? available_exams(@category, @division_id) : []
+        # Rodzaj wniosku na ekranie – od razu po wyborze rodzaju świadectwa (zapis po „Dalej”, apply_step1); sesja
+        # zapisana dla tego rodzaju – wg jej daty, inaczej wg dziś.
+        @correction_deadline = @division_id && @proposal.correction_deadline_for(creator_netpar_proposals, @division_id)
+        on_date = @division_id == @proposal.division_id ? @proposal.age_reference_date : Time.zone.today
+        @proposal.esod_category = @division_id ? @proposal.esod_category_for(creator_netpar_proposals, @division_id, on_date) : Proposal::ESOD_CATEGORY_EGZAMIN
         @other_drafts = other_drafts
       when "step2"
         # Podpowiedź w formularzu: puste pola – dane z konta UKE (tylko na ekranie; zapis po „Dalej” na zakładce 2).
@@ -95,6 +114,9 @@ class Proposals::StepsController < ApplicationController
       without_category.or(drafts.where(category: @category, division_id: [ nil, @division_id ]))
     end
 
+    # Zgłoszenia użytkownika w NETPAR (jedno zapytanie na żądanie) – reguła „jedno w toku” i prawo do egzaminu poprawkowego.
+    def creator_netpar_proposals = @creator_netpar_proposals ||= netpar.proposals(creator_id: current_user.id)
+
     def available_divisions(category = @proposal.category)
       @available_divisions ||= {}
       @available_divisions[category] ||= netpar.divisions(category:)
@@ -113,15 +135,13 @@ class Proposals::StepsController < ApplicationController
 
     # --- dane z NETPAR / TERYT dla poszczególnych kroków (wywoływane w update) ---
 
+    # Rodzaj wniosku (egzamin / poprawkowy) – z prawa do poprawki z wybranego rodzaju świadectwa (NETPAR); opłata od nowa.
     def apply_step1
-      if @proposal.correction_exam?
-        # W zgłoszeniu poprawkowym służba i rodzaj są takie jak w poprzednim zgłoszeniu.
-        @proposal.category, @proposal.division_id = @proposal.category_was, @proposal.division_id_was
-      end
       division = @proposal.division_id.present? && available_divisions.find { it["id"] == @proposal.division_id }
       exam = division && @proposal.exam_id.present? && available_exams.find { it["id"] == @proposal.exam_id }
       division ? @proposal.assign_division(netpar.division(division["id"]) || division) : @proposal.reset_division
       exam ? @proposal.assign_exam(netpar.exam(exam["id"]) || exam) : @proposal.reset_exam
+      @proposal.esod_category = division ? @proposal.esod_category_for(creator_netpar_proposals) : Proposal::ESOD_CATEGORY_EGZAMIN
       @proposal.clear_exam_fee
     end
 

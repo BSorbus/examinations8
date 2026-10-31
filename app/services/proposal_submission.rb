@@ -28,6 +28,7 @@ class ProposalSubmission
       @proposal.form_step = nil
       @proposal.netpar_proposals = @netpar.proposals(creator_id: @proposal.creator_id) # reguła „jedno w toku na rodzaj”
       return false unless @proposal.valid?
+      return false if esod_category_changed?
 
       uncertain_previous_attempt = @proposal.status == Proposal::REQUIRED_PUSH_TO_NETPAR
       @proposal.update_columns(status: Proposal::REQUIRED_PUSH_TO_NETPAR, updated_at: Time.current)
@@ -66,6 +67,16 @@ class ProposalSubmission
       Time.zone.parse(netpar_proposal["created_at"].to_s) || Time.current
     rescue ArgumentError
       Time.current
+    end
+
+    # Prawo do egzaminu poprawkowego zmieniło się od zakładki 1 (np. nowy wynik w NETPAR) – inny rodzaj wniosku i opłata:
+    # zapis rodzaju, opłata od nowa (powrót do zakładki 4), nic nie idzie do NETPAR.
+    def esod_category_changed?
+      return false unless @proposal.change_esod_category(@proposal.esod_category_for(@proposal.netpar_proposals))
+
+      @proposal.save!(validate: false)
+      @proposal.errors.add(:esod_category, "zmienił się (prawo do egzaminu poprawkowego) – wróć do zakładki 4 i sprawdź opłatę")
+      true
     end
 
     def with_advisory_lock

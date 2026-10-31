@@ -197,6 +197,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .confirm-box .checkbox { font-size: 1rem; font-weight: 700; gap: 12px; }
 .confirm-box .checkbox input { width: 24px; height: 24px; }
 .confirm-box--invalid { border-color: var(--bad); border-left-color: var(--bad); background: var(--bad-bg); }
+/* Egzamin poprawkowy (zakładka 1, strona zgłoszenia) – informacja (nie błąd), ma się wyróżniać: ramka 1 px w kolorze akcentu
+   z paskiem z lewej 4 px (jak przy liście adresów), tło akcentu, pogrubiony tytuł. */
+.correction-box { border: 1px solid var(--accent); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface-accent);
+                  color: var(--ink); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.correction-box p { margin: 0; }
+.correction-box__title { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+/* Kreator, zakładki 2–5: rodzaj wniosku (egzamin poprawkowy) pod paskiem kroków – wąska, wyśrodkowana ramka. */
+.wizard-correction { margin: 16px 0 0; padding: 8px 12px; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface-accent);
+                     color: var(--accent); font-weight: 700; text-align: center; }
 
 .form-actions {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;

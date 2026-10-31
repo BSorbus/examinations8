@@ -20,6 +20,8 @@ class Proposal < ApplicationRecord
   PROPOSAL_STATUS_EXAMINATION_RESULT_P = 9  # Pozytywny
   PROPOSAL_STATUS_EXAMINATION_RESULT_Z = 10 # Zmiana terminu
   PROPOSAL_STATUSES = (1..10).to_a.freeze
+  # Bez wyniku egzaminu (odrzucone, zamknięte, anulowane) – nie zmieniają prawa do egzaminu poprawkowego.
+  STATUSES_WITHOUT_RESULT = [ PROPOSAL_STATUS_NOT_APPROVED, PROPOSAL_STATUS_CLOSED, PROPOSAL_STATUS_ANNULLED ].freeze
 
   CATEGORY_NAMES = {
     "M" => "Świadectwo służby morskiej i żeglugi śródlądowej",
@@ -39,6 +41,7 @@ class Proposal < ApplicationRecord
   attr_accessor :form_step, :remove_other_pdf
 
   belongs_to :creator, class_name: "User", inverse_of: :proposals
+  ATTACHMENTS = %i[bank_pdf face_image consent_pdf other_pdf].freeze
   has_one_attached :bank_pdf
   has_one_attached :face_image
   has_one_attached :consent_pdf
@@ -129,10 +132,14 @@ class Proposal < ApplicationRecord
   # Data zgłoszenia: wysłania do NETPAR (jak w NETPAR), a dla szkicu – rozpoczęcia w kreatorze.
   def proposal_date = submitted_at || created_at
 
-  # „Zgłoszenie 2026-10-29 12:00:00 [Uprawnienia w służbie radioamatorskiej][A]” – jak w poprzedniej wersji.
+  # „Zgłoszenie 2026-10-29 12:00:00 [Uprawnienia w służbie radioamatorskiej][A]” – jak w poprzedniej wersji;
+  # zgłoszenie na egzamin poprawkowy z dopiskiem „[poprawkowe]” (inna opłata i rodzaj wniosku – lista, maile).
   def rec_info = I18n.t("proposals.proposal.rec_info", data: rec_info_short)
 
-  def rec_info_short = "#{proposal_date&.strftime('%Y-%m-%d %H:%M:%S')} [#{category_name}][#{division_short_name}]"
+  def rec_info_short
+    mark = "[#{I18n.t('proposals.proposal.correction_mark')}]" if correction_exam?
+    "#{proposal_date&.strftime('%Y-%m-%d %H:%M:%S')} [#{category_name}][#{division_short_name}]#{mark}"
+  end
 
   def status_name = I18n.t("proposals.status_id_#{proposal_status_id}_name")
 
@@ -213,7 +220,78 @@ class Proposal < ApplicationRecord
       [ PROPOSAL_STATUS_CREATED, PROPOSAL_STATUS_APPROVED ].include?(proposal_status_id)
   end
 
-  def can_correction_exam? = proposal_status_id == PROPOSAL_STATUS_EXAMINATION_RESULT_N
+  # --- egzamin poprawkowy: prawo wynika ze zgłoszeń w NETPAR (źródło prawdy o wynikach), nie z wyboru użytkownika ---
+
+  # Egzamin poprawkowy – sesja najpóźniej rok (włącznie) po sesji pierwotnie oblanego egzaminu.
+  CORRECTION_PERIOD = 1.year
+
+  # Prawo do poprawki dla każdego rodzaju świadectwa: ostatnie zgłoszenie (pomijając odrzucone, zamknięte i anulowane)
+  # ma wynik „Negatywny z prawem do poprawki”; termin – rok od sesji pierwotnie oblanego egzaminu (correction_origin).
+  # { division_id => { "multi_app_identifier" => zgłoszenie z prawem, "deadline" => ostatni dzień sesji poprawkowej } }.
+  # netpar_proposals – GET /proposals?creator_id= (m.in. id, division_id, proposal_status_id, esod_category, exam_date_exam).
+  def self.correction_rights(netpar_proposals)
+    netpar_proposals.reject { |row| STATUSES_WITHOUT_RESULT.include?(row["proposal_status_id"]) }
+                    .group_by { |row| row["division_id"] }
+                    .filter_map do |division_id, rows|
+                      rows = rows.sort_by { |row| row["id"].to_i }
+                      next unless rows.last["proposal_status_id"] == PROPOSAL_STATUS_EXAMINATION_RESULT_N
+
+                      failed_on = Date.parse(correction_origin(rows)["exam_date_exam"].to_s) rescue nil
+                      next unless failed_on
+
+                      [ division_id, { "multi_app_identifier" => rows.last["multi_app_identifier"].to_s,
+                                       "deadline" => failed_on + CORRECTION_PERIOD } ]
+                    end.to_h
+  end
+
+  # Pierwotnie oblany egzamin: od ostatniego wyniku 7 wstecz po kolejnych wynikach 7 – do zgłoszenia na zwykły egzamin
+  # (oblane poprawki nie przesuwają terminu; nowy pełny egzamin oblany z prawem do poprawki – nowy termin).
+  def self.correction_origin(rows)
+    failed = rows.reverse.take_while { |row| row["proposal_status_id"] == PROPOSAL_STATUS_EXAMINATION_RESULT_N }
+    failed.find { |row| row["esod_category"].to_i != ESOD_CATEGORY_POPRAWKOWY } || failed.last
+  end
+
+  # Ostatni dzień sesji poprawkowej dla rodzaju świadectwa; nil – brak prawa do poprawki (to zgłoszenie pomijane –
+  # przy ponowieniu wysyłki może już być w NETPAR).
+  def correction_deadline_for(netpar_proposals, division_id = self.division_id)
+    others = netpar_proposals.reject { |row| row["multi_app_identifier"].to_s == multi_app_identifier.to_s }
+    self.class.correction_rights(others).dig(division_id, "deadline")
+  end
+
+  # Rodzaj wniosku: poprawkowy, gdy jest prawo do poprawki, a sesja (on_date – data wybranej sesji, bez niej dziś)
+  # mieści się w terminie; inaczej egzamin.
+  def esod_category_for(netpar_proposals, division_id = self.division_id, on_date = age_reference_date)
+    deadline = correction_deadline_for(netpar_proposals, division_id)
+    deadline && on_date <= deadline ? ESOD_CATEGORY_POPRAWKOWY : ESOD_CATEGORY_EGZAMIN
+  end
+
+  # Ustawia rodzaj wniosku; przy zmianie dane z zakładek 1–3 zostają, a zakładka 4 (opłata – inna dla egzaminu
+  # poprawkowego, załączniki) i potwierdzenie – od nowa; kreator najdalej od zakładki 4. true – rodzaj się zmienił.
+  def change_esod_category(expected)
+    return false if esod_category == expected
+
+    self.esod_category = expected
+    self.confirm_that_the_data_is_correct = false
+    clear_exam_fee
+    ATTACHMENTS.each do |name|
+      public_send(name).purge if public_send(name).attached?
+      self["#{name}_blob_path"] = nil
+    end
+    saved = FORM_STEPS.index(status.to_s)
+    self.status = "step3" if saved && saved > FORM_STEPS.index("step3")
+    true
+  end
+
+  # Termin egzaminu poprawkowego, gdy to zgłoszenie (wynik 7) niesie prawo do poprawki; bez listy z NETPAR – nil.
+  def correction_deadline
+    return unless proposal_status_id == PROPOSAL_STATUS_EXAMINATION_RESULT_N && !netpar_proposals.nil?
+
+    right = self.class.correction_rights(netpar_proposals)[division_id]
+    right["deadline"] if right && right["multi_app_identifier"] == multi_app_identifier.to_s
+  end
+
+  # Prawo do poprawki z tego zgłoszenia jest aktualne (informacja na stronie zgłoszenia).
+  def can_correction_exam? = correction_deadline.present? && Time.zone.today <= correction_deadline
 
   # Niezaliczone przedmioty (nazwy) – z ocen w NETPAR; mail z wynikiem i strona zgłoszenia przy wyniku 7.
   def failed_subject_names(netpar: Netpar::Client.new)
@@ -256,7 +334,7 @@ class Proposal < ApplicationRecord
   # Linki do załączników dla NETPAR (urzędnik otwiera je z poziomu NETPAR).
   def update_attachment_paths
     helpers = Rails.application.routes.url_helpers
-    %i[bank_pdf face_image consent_pdf other_pdf].each do |name|
+    ATTACHMENTS.each do |name|
       attachment = public_send(name)
       self["#{name}_blob_path"] = attachment.attached? ? helpers.rails_blob_path(attachment, only_path: true) : nil
     end

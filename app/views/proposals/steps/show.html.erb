@@ -21,8 +21,13 @@
         </li>
       <% end %>
     </ol>
+    <% if @proposal.correction_exam? && @step != "step1" %>
+      <%# Zakładki 2–5: rodzaj wniosku pod paskiem kroków (na zakładce 1 – ramka z wyjaśnieniem). %>
+      <p class="wizard-correction"><%= @proposal.esod_category_name %></p>
+    <% end %>
 
     <div class="wizard-body">
+      <%= render "shared/flash" %>
       <% if @service_error %>
         <div class="flash flash--alert" role="alert"><%= @service_error %></div>
       <% end %>

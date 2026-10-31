@@ -2,10 +2,14 @@
 <section class="form-section" aria-labelledby="payment_heading">
   <h2 id="payment_heading" class="field__label" style="font-size: 1.125rem;"><%= t("proposals.wizard.step4.payment") %></h2>
   <% if proposal.exam_fee_price.present? %>
-    <% rows = { amount: price(proposal.exam_fee_price),
+    <%# Egzamin poprawkowy – inna kwota (dopisek) i tytuł przelewu (księgowanie wpłaty). %>
+    <% amount = price(proposal.exam_fee_price)
+       amount = "#{amount} #{t("proposals.wizard.step4.amount_correction")}" if proposal.correction_exam?
+       titles = proposal.correction_exam? ? "transfer_title_value_correction" : "transfer_title_value"
+       rows = { amount:,
                 recipient: "Urząd Komunikacji Elektronicznej, ul. Giełdowa 7/9, 01-211 Warszawa",
                 account: "75 1010 1010 0060 4422 3100 0000",
-                transfer_title: t("proposals.wizard.step4.transfer_title_value.#{proposal.category}") } %>
+                transfer_title: t("proposals.wizard.step4.#{titles}.#{proposal.category}") } %>
     <dl class="payment">
       <% rows.each do |key, value| %>
         <dt><%= t("proposals.wizard.step4.#{key}") %></dt>

@@ -81,6 +81,109 @@ class WizardTest < ActionDispatch::IntegrationTest
     assert_redirected_to wizard(current, "step2") # podpowiedź nie blokuje
   end
 
+  test "zakładka 1: rodzaj wniosku z prawa do poprawki w NETPAR – zwykły szkic na ten rodzaj staje się poprawkowym" do
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_failed_row(failed) ])
+    current = draft_proposal(@user)
+
+    get wizard(current, "step1"), params: { category: "R", division_id: 18 }
+    assert_select ".correction-box[role=status] .correction-box__title", text: "Wniosek o przeprowadzenie egzaminu poprawkowego"
+    assert_select ".correction-box p", text: /Masz prawo do egzaminu poprawkowego/
+    assert_select ".wizard-correction", count: 0 # na zakładce 1 tylko ramka z wyjaśnieniem
+    get wizard(current, "step1"), params: { category: "R" } # bez rodzaju – zwykły wniosek, bez ramki
+    assert_select ".correction-box", count: 0
+
+    patch wizard(current, "step1"), params: { proposal: { category: "R", division_id: 18, exam_id: 501 } }
+    assert_redirected_to wizard(current, "step2")
+    assert_equal Proposal::ESOD_CATEGORY_POPRAWKOWY, current.reload.esod_category
+    follow_redirect!
+    assert_select ".wizard-correction", text: "Wniosek o przeprowadzenie egzaminu poprawkowego" # pod paskiem kroków na kolejnych zakładkach
+  end
+
+  test "zakładka 4: egzamin poprawkowy – dopisek przy kwocie i tytuł przelewu; zwykły egzamin – bez zmian" do
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_failed_row(failed) ])
+    correction = complete_proposal(@user, esod_category: Proposal::ESOD_CATEGORY_POPRAWKOWY, exam_fee_id: 10, exam_fee_price: 50)
+    correction.update_columns(status: "step3")
+    get wizard(correction, "step4")
+    assert_select ".payment dd", text: /\(egzamin poprawkowy\)/
+    assert_select ".payment dd", text: /za przeprowadzenie egzaminu poprawkowego w służbie radiokomunikacyjnej amatorskiej/
+    assert_select ".wizard-correction", count: 1
+
+    stub_netpar_proposals # bez prawa do poprawki
+    exam = complete_proposal(@user, exam_fee_id: 10, exam_fee_price: 75)
+    exam.update_columns(status: "step3")
+    get wizard(exam, "step4")
+    assert_select ".payment dd", text: /za przeprowadzenie egzaminu w służbie radiokomunikacyjnej amatorskiej/
+    assert_select ".payment dd", text: /poprawkow/, count: 0
+    assert_select ".wizard-correction", count: 0
+  end
+
+  test "zakładka 1: sesja po terminie poprawki (rok od oblanej sesji) – zwykły egzamin z informacją o terminie" do
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    deadline = Time.zone.today + 10 # sesja szkicu: za 30 dni
+    stub_netpar_proposals([ netpar_failed_row(failed, exam_date: deadline - 1.year) ])
+    draft = complete_proposal(@user)
+    draft.update_columns(status: "step1")
+
+    get wizard(draft, "step1")
+    assert_select ".correction-box__title", count: 0
+    assert_select ".correction-box p", text: /obejmuje sesje najpóźniej do #{deadline.strftime('%d.%m.%Y')}\. Wybrana sesja jest późniejsza/
+    assert_equal Proposal::ESOD_CATEGORY_EGZAMIN, draft.reload.esod_category
+  end
+
+  test "wysłanie: prawo do poprawki zmieniło się od zakładki 1 – rodzaj wniosku poprawiony, powrót do opłaty, nic do NETPAR" do
+    proposal = complete_proposal(@user)
+    proposal.update_columns(status: "step4")
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_failed_row(failed) ])
+
+    patch wizard(proposal, "step5"), params: { proposal: { confirm_that_the_data_is_correct: "1" } }
+    assert_response :unprocessable_content
+    assert_select ".error-summary, [role=alert]", text: /wróć do zakładki 4/
+    assert_equal [ 42, nil, "step3" ], proposal.reload.values_at(:esod_category, :exam_fee_id, :status)
+    assert_not_requested :post, "#{NETPAR_URL}/proposals"
+  end
+
+  test "powrót do porzuconego szkicu po wyniku z prawem do poprawki: zakładka 4 od nowa, kreator od zakładki 4" do
+    abandoned = complete_proposal(@user, exam_fee_id: 7, exam_fee_price: 75)
+    abandoned.update_columns(status: "step4", confirm_that_the_data_is_correct: true) # doszedł do podsumowania
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_failed_row(failed) ])
+    blob = abandoned.bank_pdf.blob
+
+    get wizard(abandoned, "step5")
+    assert_redirected_to wizard(abandoned, "step4")
+    abandoned.reload
+    assert_equal [ 42, nil, nil, "step3", false ],
+                 [ abandoned.esod_category, abandoned.exam_fee_id, abandoned.exam_fee_price, abandoned.status, abandoned.confirm_that_the_data_is_correct ]
+    assert_not abandoned.bank_pdf.attached?
+    assert_not ActiveStorage::Blob.exists?(blob.id)
+    assert_equal [ 501, "Testowy", "81-323" ], [ abandoned.exam_id, abandoned.name, abandoned.c_address_postal_code ] # zakładki 1–3
+    follow_redirect!
+    assert_select ".flash", text: /Zmienił się rodzaj wniosku na „Wniosek o przeprowadzenie egzaminu poprawkowego”/
+
+    get wizard(abandoned, "step2") # już zgodny – bez zmian i bez komunikatu
+    assert_response :success
+    assert_select ".flash", count: 0
+  end
+
+  test "powrót do szkicu: zmiana rodzaju na wcześniejszej zakładce – komunikat na tej zakładce; NETPAR niedostępny – bez zmian" do
+    draft = complete_proposal(@user)
+    draft.update_columns(status: "step2")
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_request(:get, "#{NETPAR_URL}/proposals").to_timeout
+    get wizard(draft, "step2")
+    assert_response :success
+    assert_equal 41, draft.reload.esod_category
+
+    stub_netpar_proposals([ netpar_failed_row(failed) ])
+    get wizard(draft, "step2")
+    assert_response :success
+    assert_select ".flash", text: /Zmienił się rodzaj wniosku/
+    assert_equal [ 42, "step2" ], draft.reload.values_at(:esod_category, :status)
+  end
+
   test "zakładka 1: „Usuń je” usuwa wcześniejsze zgłoszenie i wraca do bieżącego" do
     old = draft_proposal(@user, category: "R", division_id: 18, division_short_name: "A", status: "step1")
     current = draft_proposal(@user)

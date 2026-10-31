@@ -31,6 +31,12 @@
         <% end %>
       </ul>
     <% end %>
+    <% if policy(@proposal).correction_exam? %>
+      <div class="correction-box" style="margin-top: 16px;">
+        <p class="correction-box__title"><%= t(".correction_right_title") %></p>
+        <p><%= t(".correction_right_text", date: @proposal.correction_deadline.strftime("%d.%m.%Y")) %></p>
+      </div>
+    <% end %>
     <% if @proposal.not_approved_comment.present? %>
       <h3 class="field__label" style="margin-top: 16px;"><%= Proposal.human_attribute_name(:not_approved_comment) %></h3>
       <%= simple_format(@proposal.not_approved_comment) %>
@@ -40,10 +46,6 @@
       <% if policy(@proposal).annul? %>
         <%= button_to t("helpers.links.annulled"), annul_proposal_path(@proposal), method: :patch, class: "btn btn-warning",
                       form: { data: { turbo_confirm: t("helpers.links.confirm_annulled", data: @proposal.rec_info) } } %>
-      <% end %>
-      <% if policy(@proposal).correction_exam? %>
-        <%= button_to t("helpers.links.create_correction_exam"), correction_exam_proposal_path(@proposal), class: "btn btn-primary",
-                      form: { data: { turbo_confirm: t("helpers.links.confirm_create_correction_exam") } } %>
       <% end %>
       <% if policy(@proposal).testportal? && @proposal.exam_date_exam == Time.zone.today %>
         <%= link_to t("helpers.links.take_test"), testportal_proposal_path(@proposal), class: "btn btn-primary" %>

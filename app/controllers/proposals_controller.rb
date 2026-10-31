@@ -1,6 +1,6 @@
 class ProposalsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_proposal, only: %i[show destroy annul correction_exam testportal]
+  before_action :set_proposal, only: %i[show destroy annul testportal]
 
   def index
     authorize Proposal
@@ -8,10 +8,14 @@ class ProposalsController < ApplicationController
     @drafts = current_user.proposals.drafts.order(updated_at: :desc)
   end
 
-  # Przy wyniku „Negatywny z prawem do poprawki” – przedmioty do poprawy z NETPAR (bez NETPAR strona bez tej listy).
+  # Przy wyniku „Negatywny z prawem do poprawki” – przedmioty do poprawy i informacja o prawie do egzaminu poprawkowego
+  # (wg zgłoszeń w NETPAR; zgłoszenie poprawkowe rozpoznaje kreator); bez NETPAR strona bez tych informacji.
   def show
     authorize @proposal
-    @failed_subjects = @proposal.failed_subject_names(netpar:) if @proposal.can_correction_exam?
+    return unless @proposal.proposal_status_id == Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N
+
+    @proposal.netpar_proposals = netpar.proposals(creator_id: @proposal.creator_id)
+    @failed_subjects = @proposal.failed_subject_names(netpar:)
   rescue Netpar::Unavailable => e
     Rails.logger.error("[NETPAR] #{e.message}")
   end
@@ -50,17 +54,6 @@ class ProposalsController < ApplicationController
   rescue Netpar::Unavailable, Netpar::Rejected => e
     Rails.logger.error("[NETPAR] #{e.message}")
     redirect_to proposal_path(@proposal), alert: t("netpar.unavailable"), status: :see_other
-  end
-
-  # Zgłoszenie na egzamin poprawkowy: adres i rodzaj świadectwa z poprzedniego zgłoszenia.
-  def correction_exam
-    authorize @proposal
-    copied = @proposal.slice(*%w[lives_in_poland address_combine_id city_name street_name c_address_house
-                                c_address_number c_address_postal_code category division_id division_fullname
-                                division_short_name division_min_years_old division_face_image_required])
-    proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_POPRAWKOWY, **copied.symbolize_keys)
-    proposal.save!(validate: false)
-    redirect_to proposal_wizard_path(proposal, Proposal::FORM_STEPS.first), status: :see_other
   end
 
   # Egzamin online: testy z TestPortal (kody dostępu z NETPAR).

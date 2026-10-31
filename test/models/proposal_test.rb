@@ -23,6 +23,56 @@ class ProposalTest < ActiveSupport::TestCase
     assert_equal [ draft, newer_draft ], @user.proposals.newest_first.to_a
   end
 
+  # Zgłoszenie w NETPAR: id, status, rodzaj świadectwa, rodzaj wniosku (41 egzamin / 42 poprawkowy), data sesji.
+  def row(id, status, division: 18, esod: 41, date: "2026-03-15") =
+    { "id" => id, "proposal_status_id" => status, "division_id" => division, "multi_app_identifier" => "m#{id}",
+      "esod_category" => esod, "exam_date_exam" => date }
+
+  def rights(rows) = Proposal.correction_rights(rows).transform_values { |right| right.values_at("multi_app_identifier", "deadline") }
+
+  test "prawo do egzaminu poprawkowego: ostatnie zgłoszenie na rodzaj (bez odrzuconych, zamkniętych, anulowanych) z wynikiem 7" do
+    deadline = Date.new(2027, 3, 15)
+    assert_equal({ 18 => [ "m1", deadline ] }, rights([ row(1, 7) ]))
+    assert_equal({ 18 => [ "m1", deadline ] }, rights([ row(1, 7), row(2, 5), row(3, 3), row(4, 4) ])) # poprawka anulowana itp.
+    assert_empty rights([ row(1, 7), row(2, 1, esod: 42) ]) # poprawka w toku
+    assert_empty rights([ row(1, 7), row(2, 9, esod: 42) ]) # poprawka zdana
+    assert_equal({ 20 => [ "m2", deadline ] }, rights([ row(1, 9), row(2, 7, division: 20) ])) # inny rodzaj
+    assert_empty rights([ row(1, 6) ]) # bez prawa do poprawki
+    assert_empty rights([ row(1, 7, date: nil) ]) # bez daty sesji – terminu nie da się ustalić
+  end
+
+  test "termin poprawki: rok od sesji pierwotnie oblanego egzaminu – oblane poprawki go nie przesuwają, nowy pełny egzamin – nowy termin" do
+    # egzamin 15.03.2026 (7), poprawka 20.06.2026 (7) – termin nadal od egzaminu pierwotnego
+    assert_equal({ 18 => [ "m2", Date.new(2027, 3, 15) ] }, rights([ row(1, 7), row(2, 7, esod: 42, date: "2026-06-20") ]))
+    # po terminie pełny egzamin 01.06.2027 (7) – nowe oblanie, nowy termin
+    assert_equal({ 18 => [ "m3", Date.new(2028, 6, 1) ] },
+                 rights([ row(1, 7), row(2, 7, esod: 42, date: "2026-06-20"), row(3, 7, date: "2027-06-01") ]))
+  end
+
+  test "rodzaj wniosku wg terminu: sesja do rocznicy oblanej sesji włącznie – poprawkowy, później – egzamin" do
+    draft = complete_proposal(@user)
+    failed = [ row(1, 7) ] # oblana sesja 15.03.2026
+    assert_equal 42, draft.esod_category_for(failed, 18, Date.new(2027, 3, 10))
+    assert_equal 42, draft.esod_category_for(failed, 18, Date.new(2027, 3, 15)) # dokładnie w rocznicę
+    assert_equal 41, draft.esod_category_for(failed, 18, Date.new(2027, 3, 16))
+    assert_equal 41, draft.esod_category_for(failed, 20, Date.new(2027, 3, 10)) # inny rodzaj świadectwa
+  end
+
+  test "rodzaj wniosku wg prawa do poprawki; zmiana – opłata od nowa, kreator najdalej od zakładki 4" do
+    proposal = complete_proposal(@user, exam_fee_id: 7, exam_fee_price: 75)
+    proposal.status = "step4"
+    failed = row(1, 7, date: (Time.zone.today - 30).to_s).merge("multi_app_identifier" => "inne")
+    assert_equal Proposal::ESOD_CATEGORY_POPRAWKOWY, proposal.esod_category_for([ failed ])
+    assert_equal Proposal::ESOD_CATEGORY_EGZAMIN, proposal.esod_category_for([ failed ], 20)
+    # to samo zgłoszenie w NETPAR (ponowienie wysyłki) nie odbiera prawa
+    assert_equal Proposal::ESOD_CATEGORY_POPRAWKOWY,
+                 proposal.esod_category_for([ failed, failed.merge("id" => 2, "proposal_status_id" => 1, "multi_app_identifier" => proposal.multi_app_identifier) ])
+
+    assert proposal.change_esod_category(Proposal::ESOD_CATEGORY_POPRAWKOWY)
+    assert_equal [ 42, nil, nil, "step3" ], [ proposal.esod_category, proposal.exam_fee_id, proposal.exam_fee_price, proposal.status ]
+    assert_not proposal.change_esod_category(Proposal::ESOD_CATEGORY_POPRAWKOWY)
+  end
+
   test "walidacja tylko do bieżącego kroku kreatora" do
     proposal = @user.proposals.build(proposal_attributes(pesel: "90010100005", address_combine_id: nil))
     proposal.form_step = "step1"

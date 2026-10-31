@@ -11,7 +11,6 @@ Rails.application.routes.draw do
     resources :proposals, param: :multi_app_identifier, only: %i[index show create destroy] do
       member do
         patch :annul
-        post :correction_exam
         get :testportal
       end
       resources :wizard, only: %i[show update], controller: "proposals/steps"

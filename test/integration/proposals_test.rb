@@ -41,17 +41,42 @@ class ProposalsTest < ActionDispatch::IntegrationTest
     assert_empty proposal.events
   end
 
-  test "egzamin poprawkowy: nowe zgłoszenie z rodzajem i adresem z poprzedniego" do
+  # Zgłoszenia w NETPAR (GET /proposals?creator_id=) – źródło prawa do egzaminu poprawkowego.
+  def netpar_row(proposal, id:, status: proposal.proposal_status_id, division_id: proposal.division_id, exam_date: Time.zone.today - 30)
+    { "id" => id, "multi_app_identifier" => proposal.multi_app_identifier, "division_id" => division_id, "proposal_status_id" => status,
+      "esod_category" => proposal.esod_category, "exam_date_exam" => exam_date.to_s }
+  end
+
+  test "egzamin poprawkowy: informacja przy zgłoszeniu z prawem do poprawki (ostatnie na ten rodzaj w NETPAR), bez przycisku" do
     sign_in @user
-    proposal = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
-    post "/pl/proposals/#{proposal.multi_app_identifier}/correction_exam"
-    correction = @user.proposals.order(:id).last
-    assert_equal [ 42, 18, "81-323" ], [ correction.esod_category, correction.division_id, correction.c_address_postal_code ]
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_request(:get, %r{/grades_with_result}).to_return(json({ grades_with_result: [] }))
+    stub_netpar_proposals([ netpar_row(failed, id: 1) ])
+    get "/pl/proposals/#{failed.multi_app_identifier}"
+    assert_select ".correction-box .correction-box__title", text: "Masz prawo do egzaminu poprawkowego"
+    assert_select ".correction-box p", text: /najpóźniej #{(Time.zone.today - 30 + 1.year).strftime('%d.%m.%Y')}/
+    assert_select "button, a", text: /egzamin poprawkowy/i, count: 0
+
+    stub_netpar_proposals([ netpar_row(failed, id: 1, exam_date: Time.zone.today - 1.year - 1) ]) # termin minął
+    get "/pl/proposals/#{failed.multi_app_identifier}"
+    assert_select ".correction-box", count: 0
+
+    passed = submitted_proposal(@user, proposal_status_id: 9, esod_category: Proposal::ESOD_CATEGORY_POPRAWKOWY)
+    stub_netpar_proposals([ netpar_row(failed, id: 1), netpar_row(passed, id: 2) ]) # poprawka zdana – prawa już nie ma
+    get "/pl/proposals/#{failed.multi_app_identifier}"
+    assert_response :success
+    assert_select ".correction-box", count: 0
+
+    stub_request(:get, "#{NETPAR_URL}/proposals").to_timeout # NETPAR niedostępny – strona bez informacji
+    get "/pl/proposals/#{failed.multi_app_identifier}"
+    assert_response :success
+    assert_select ".correction-box", count: 0
   end
 
   test "wynik negatywny z prawem do poprawki: przedmioty do poprawy z NETPAR na stronie zgłoszenia" do
     sign_in @user
     proposal = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_row(proposal, id: 1) ])
     stub_request(:get, "#{NETPAR_URL}/proposals/#{proposal.multi_app_identifier}/grades_with_result")
       .to_return(json({ grades_with_result: [ { "subject_name" => "Przepisy", "grade_result" => "P" },
                                               { "subject_name" => "Technika <b>radiowa</b>", "grade_result" => "N" } ] }))
@@ -65,6 +90,7 @@ class ProposalsTest < ActionDispatch::IntegrationTest
   test "przedmioty do poprawy: NETPAR niedostępny – strona bez listy; inny status – bez pytania NETPAR" do
     sign_in @user
     failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_netpar_proposals([ netpar_row(failed, id: 1) ])
     stub_request(:get, "#{NETPAR_URL}/proposals/#{failed.multi_app_identifier}/grades_with_result").to_timeout
     get "/pl/proposals/#{failed.multi_app_identifier}"
     assert_response :success

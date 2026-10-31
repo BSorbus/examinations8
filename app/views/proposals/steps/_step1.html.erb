@@ -3,34 +3,46 @@
 
 <div class="field">
   <p class="field__label"><%= Proposal.human_attribute_name(:esod_category) %></p>
-  <p><%= proposal.esod_category_name %></p>
+  <% if proposal.correction_exam? %>
+    <%# Zgłoszenie na egzamin poprawkowy – wyraźnie (inna opłata), w ramce; termin – rok od oblanej sesji. %>
+    <div class="correction-box" role="status">
+      <p class="correction-box__title"><%= proposal.esod_category_name %></p>
+      <% if @correction_deadline %>
+        <p><%= t("proposals.wizard.step1.correction_info", date: @correction_deadline.strftime("%d.%m.%Y")) %></p>
+      <% end %>
+    </div>
+  <% else %>
+    <p><%= proposal.esod_category_name %></p>
+    <% if @correction_deadline %>
+      <%# Prawo do poprawki jest, ale wybrana sesja wypada po terminie – zwykły egzamin. %>
+      <div class="correction-box" role="status">
+        <p><%= t("proposals.wizard.step1.correction_after_deadline", date: @correction_deadline.strftime("%d.%m.%Y")) %></p>
+      </div>
+    <% end %>
+  <% end %>
 </div>
 
-<% if proposal.correction_exam? %>
-  <p class="field__hint"><%= t("proposals.wizard.step1.correction_locked") %></p>
-<% else %>
-  <%= form_with url: proposal_wizard_path(proposal, "step1"), method: :get, class: "form-section",
-                data: { controller: "auto-submit", turbo_action: "replace" } do %>
-    <div class="field-row field-row--exam-choice">
+<%= form_with url: proposal_wizard_path(proposal, "step1"), method: :get, class: "form-section",
+              data: { controller: "auto-submit", turbo_action: "replace" } do %>
+  <div class="field-row field-row--exam-choice">
+    <div class="field">
+      <%= label_tag :category, Proposal.human_attribute_name(:category), class: "field__label" %>
+      <%= select_tag :category, options_for_select(Proposal::CATEGORY_NAMES.invert, @category),
+                     include_blank: t("proposals.wizard.step1.choose_category"), class: "form-select form-select-sm",
+                     data: { action: "auto-submit#submit" } %>
+    </div>
+    <% if @category.present? %>
       <div class="field">
-        <%= label_tag :category, Proposal.human_attribute_name(:category), class: "field__label" %>
-        <%= select_tag :category, options_for_select(Proposal::CATEGORY_NAMES.invert, @category),
-                       include_blank: t("proposals.wizard.step1.choose_category"), class: "form-select form-select-sm",
+        <%= label_tag :division_id, Proposal.human_attribute_name(:division_id), class: "field__label" %>
+        <%= select_tag :division_id, options_for_select(@divisions.map { [ it["fullname"].presence || it["name"], it["id"] ] }, @division_id),
+                       include_blank: t("proposals.wizard.step1.choose_division"), class: "form-select form-select-sm",
                        data: { action: "auto-submit#submit" } %>
       </div>
-      <% if @category.present? %>
-        <div class="field">
-          <%= label_tag :division_id, Proposal.human_attribute_name(:division_id), class: "field__label" %>
-          <%= select_tag :division_id, options_for_select(@divisions.map { [ it["fullname"].presence || it["name"], it["id"] ] }, @division_id),
-                         include_blank: t("proposals.wizard.step1.choose_division"), class: "form-select form-select-sm",
-                         data: { action: "auto-submit#submit" } %>
-        </div>
-      <% end %>
-      <div class="field field--checkbox">
-        <button type="submit" class="btn btn-outline-primary btn-sm" data-auto-submit-target="button"><%= t("proposals.wizard.step1.show") %></button>
-      </div>
+    <% end %>
+    <div class="field field--checkbox">
+      <button type="submit" class="btn btn-outline-primary btn-sm" data-auto-submit-target="button"><%= t("proposals.wizard.step1.show") %></button>
     </div>
-  <% end %>
+  </div>
 <% end %>
 
 <% if @other_drafts.present? %>
@@ -57,12 +69,6 @@
   <%= f.hidden_field :category, value: @category %>
   <%= f.hidden_field :division_id, value: @division_id %>
 
-  <% if proposal.correction_exam? %>
-    <dl class="details">
-      <div><dt><%= Proposal.human_attribute_name(:category) %></dt><dd><%= proposal.category_name %></dd></div>
-      <div class="details__wide"><dt><%= Proposal.human_attribute_name(:division_id) %></dt><dd><%= proposal.division_fullname %></dd></div>
-    </dl>
-  <% end %>
   <%= field_error(proposal, :category) %>
   <%= field_error(proposal, :division_id) %>
 

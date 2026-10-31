@@ -88,12 +88,15 @@ pl:
       sending_uncertain: "Wysyłanie nie zostało potwierdzone – dokończ, aby wysłać ponownie." # nowe
     proposal:
       rec_info: "Zgłoszenie %{data}"
+      correction_mark: "poprawkowe" # nowe
       navbar: "Zgłoszenie"
     show:
       title: "Zgłoszenie"
       attachment_open: "Otwórz" # nowe
       history: "Historia zgłoszenia" # nowe
       failed_subjects: "Przedmioty do poprawy" # nowe
+      correction_right_title: "Masz prawo do egzaminu poprawkowego" # nowe
+      correction_right_text: "Utwórz zgłoszenie na sesję, która odbędzie się najpóźniej %{date}, i wybierz ten sam rodzaj świadectwa – zostanie ono rozpoznane jako zgłoszenie na egzamin poprawkowy." # nowe
     testportal:
       title: "Przystąp do Egzaminu"
       title_grades: "Testy"
@@ -117,6 +120,7 @@ pl:
       mail: "Wysłano wiadomość e-mail" # nowe
     wizard:
       title: "Kreator Zgłoszenia"
+      esod_category_changed: "Zmienił się rodzaj wniosku na „%{name}” (prawo do egzaminu poprawkowego). Opłatę i załączniki podaj ponownie na zakładce 4." # nowe
       next_step: "Dalej"
       previous_step: "Wstecz"
       submit: "Zapisz i wyślij zgłoszenie!"
@@ -124,10 +128,10 @@ pl:
       change: "Zmień" # nowe
       progress_label: "Kroki zgłoszenia" # nowe
       step_of: "Krok %{current} z %{total}" # nowe
-      documents_html: >- # nowe: tytuł przelewu zależny od służby (dawniej „…egzaminu amatorskiego”), zdjęcie gdy wymagane, bez „(w formacie PDF)”, zgoda opiekuna – wiek w dniu egzaminu
+      documents_html: >- # nowe: tytuł przelewu zależny od służby i rodzaju wniosku (dawniej „…egzaminu amatorskiego”), zdjęcie gdy wymagane, bez „(w formacie PDF)”, zgoda opiekuna – wiek w dniu egzaminu
         <p>Do poprawnej rejestracji zgłoszenia będziesz potrzebował(-a) dołączyć następujące dokumenty:</p>
         <ul>
-        <li>Potwierdzenie dokonania wpłaty: w tytule przelewu wpisać tytuł podany przy opłacie (zakładka „Opłata i załączniki” – zależny od służby)<br>
+        <li>Potwierdzenie dokonania wpłaty: w tytule przelewu wpisać tytuł podany przy opłacie (zakładka „Opłata i załączniki” – zależny od służby i rodzaju wniosku)<br>
         Urząd Komunikacji Elektronicznej<br>ul. Giełdowa 7/9<br>01-211 Warszawa<br>Nr konta: 75 1010 1010 0060 4422 3100 0000</li>
         <li>Zdjęcie (format JPG lub PNG) – jeżeli jest wymagane dla wybranego rodzaju świadectwa (np. świadectwa morskie).</li>
         <li>W przypadku osób, które w dniu egzaminu będą niepełnoletnie – skan pisemnej zgody opiekuna prawnego na przystąpienie do egzaminu.</li>
@@ -141,7 +145,8 @@ pl:
         all_provinces: "Wszystkie" # nowe
         online: "online" # nowe
         no_sessions: "Brak sesji z wolnymi miejscami dla wybranego rodzaju świadectwa." # nowe
-        correction_locked: "W zgłoszeniu na egzamin poprawkowy służba i rodzaj są takie jak w poprzednim zgłoszeniu." # nowe
+        correction_info: "Masz prawo do egzaminu poprawkowego z tego rodzaju świadectwa – na sesję, która odbędzie się najpóźniej %{date}. Zgłoszenie na sesję w tym terminie będzie zgłoszeniem na egzamin poprawkowy." # nowe
+        correction_after_deadline: "Prawo do egzaminu poprawkowego z tego rodzaju świadectwa obejmuje sesje najpóźniej do %{date}. Wybrana sesja jest późniejsza – zgłoszenie będzie zgłoszeniem na egzamin (pełna opłata)." # nowe
         other_drafts: # nowe
           one: "Masz już inne niedokończone zgłoszenie. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
           few: "Masz już %{count} inne niedokończone zgłoszenia. Możesz je dokończyć lub usunąć albo wypełniać dalej to zgłoszenie."
@@ -174,6 +179,11 @@ pl:
           M: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej morskiej i żeglugi śródlądowej"
           R: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej amatorskiej"
           L: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej lotniczej"
+        transfer_title_value_correction: # nowe: egzamin poprawkowy – do potwierdzenia z księgowością urzędu
+          M: "za przeprowadzenie egzaminu poprawkowego w służbie radiokomunikacyjnej morskiej i żeglugi śródlądowej"
+          R: "za przeprowadzenie egzaminu poprawkowego w służbie radiokomunikacyjnej amatorskiej"
+          L: "za przeprowadzenie egzaminu poprawkowego w służbie radiokomunikacyjnej lotniczej"
+        amount_correction: "(egzamin poprawkowy)" # nowe
         copy: "Kopiuj" # nowe
         copied: "Skopiowano" # nowe
         current_file: "Dołączony plik: %{name}" # nowe
@@ -278,9 +288,7 @@ pl:
       destroy: "Usuń"
       confirm_destroy: "Na pewno chcesz usunąć wpis: \"%{data}\"?"
       confirm_annulled: "Na pewno chcesz anulować \"%{data}\"?"
-      confirm_create_correction_exam: "Chcesz utworzyć Zgłoszenie na egzamin poprawkowy?"
       annulled: "Anuluj zgłoszenie"
-      create_correction_exam: "Utwórz Zgłoszenie na egzamin poprawkowy"
       take_test: "Przystąp do egzaminu"
       sign_in: "Zaloguj"
       sign_out: "Wyloguj"

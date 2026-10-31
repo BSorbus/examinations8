@@ -32,6 +32,12 @@ module ServiceStubs
     stub_request(:get, "#{NETPAR_URL}/proposals").to_return(json({ proposals: rows, meta: { total_count: rows.size } }))
   end
 
+  # Zgłoszenie w NETPAR (GET /proposals?creator_id=) z wynikiem „Negatywny z prawem do poprawki” – z datą oblanej sesji.
+  def netpar_failed_row(proposal, id: 1, exam_date: Time.zone.today - 30, esod_category: Proposal::ESOD_CATEGORY_EGZAMIN)
+    { "id" => id, "multi_app_identifier" => proposal.multi_app_identifier, "division_id" => proposal.division_id,
+      "proposal_status_id" => Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N, "esod_category" => esod_category, "exam_date_exam" => exam_date.to_s }
+  end
+
   def stub_netpar_catalog
     stub_netpar_token
     stub_netpar_proposals

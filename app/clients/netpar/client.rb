@@ -12,8 +12,7 @@ module Netpar
   #   GET    /exam_fees/find {division_id:, esod_category:, for_date:}  opłata (price, price_under18)
   #   POST   /proposals          proposal=<JSON>       nowe zgłoszenie → 201 (422 – odrzucone)
   #   PATCH  /proposals/:multi_app_identifier          zmiana zgłoszenia (np. anulowanie) → 200 (404 – brak w NETPAR)
-  # NETPAR nie pilnuje unikalności multi_app_identifier – ponowny POST tworzy duplikat. Dlatego wysyłanie
-  # zgłoszenia jest idempotentne po naszej stronie (ProposalSubmission: przy ponowieniu najpierw PATCH).
+  # Wysyłanie zgłoszenia jest idempotentne po naszej stronie (ProposalSubmission: przy ponowieniu najpierw PATCH).
   #   GET    /proposals/:multi_app_identifier/grades               testy egzaminu online (TestPortal)
   #   GET    /proposals/:multi_app_identifier/grades_with_result   wyniki testów
   # Zapytania GET wysyłają parametry jako treść JSON (tak czyta je NETPAR), nagłówek "Authorization: Token token=…".

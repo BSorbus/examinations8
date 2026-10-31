@@ -9,7 +9,8 @@ module ServiceStubs
   TERYT_URL = "https://teryt.test"
 
   def division_a = { "id" => 18, "category" => "R", "name" => "świadectwo klasy A", "short_name" => "A", "number_prefix" => "A-",
-                     "min_years_old" => 0, "fullname" => "świadectwo klasy A, [A]", "proposal_via_internet" => true }
+                     "min_years_old" => 0, "face_image_required" => false, "fullname" => "świadectwo klasy A, [A]",
+                     "proposal_via_internet" => true }
 
   def exam_r(overrides = {})
     { "id" => 501, "number" => "R/1/2026", "date_exam" => (Date.current + 30).to_s, "place_exam" => "Gdynia", "info" => "sala 1",

@@ -1,7 +1,6 @@
 # Wysłanie zgłoszenia do NETPAR i zapis u nas – tak, aby obie strony się nie rozjechały.
 #
-# NETPAR nie pilnuje unikalności multi_app_identifier (ponowny POST = duplikat), a odpowiedź może nie dotrzeć
-# (limit czasu) mimo zapisu po stronie NETPAR. Dlatego:
+# Odpowiedź NETPAR może nie dotrzeć (limit czasu) mimo zapisu po stronie NETPAR. Dlatego:
 #   1. blokada doradcza PostgreSQL na czas całej operacji – drugie kliknięcie czeka i widzi wysłane zgłoszenie,
 #   2. przed wywołaniem NETPAR zapisujemy (od razu, poza transakcją) „wysyłanie w toku” – REQUIRED_PUSH_TO_NETPAR,
 #   3. jeśli poprzednia próba mogła dotrzeć do NETPAR – najpierw PATCH (aktualizacja), a POST dopiero przy 404,

@@ -105,6 +105,8 @@ class Proposals::StepsController < ApplicationController
       division ? @proposal.assign_division(netpar.division(division["id"]) || division) : @proposal.reset_division
       exam ? @proposal.assign_exam(netpar.exam(exam["id"]) || exam) : @proposal.reset_exam
       @proposal.clear_exam_fee
+      # Dane osobowe z konta UKE trafiają na formularz zakładki 2 dopiero teraz (po „Dalej” na zakładce 1).
+      @proposal.fill_from_profile(current_user)
     end
 
     def apply_step2; end

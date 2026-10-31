@@ -12,10 +12,10 @@ class ProposalsController < ApplicationController
     authorize @proposal
   end
 
-  # Nowe zgłoszenie: dane osobowe z konta UKE, dalej kreator.
+  # Nowe zgłoszenie – kreator od zakładki 1; dane osobowe z konta UKE wpisuje dopiero przejście do zakładki 2.
   def create
     authorize Proposal
-    proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_EGZAMIN, **profile_attributes)
+    proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_EGZAMIN)
     proposal.save!(validate: false)
     redirect_to proposal_wizard_path(proposal, Proposal::FORM_STEPS.first)
   end
@@ -52,8 +52,8 @@ class ProposalsController < ApplicationController
     authorize @proposal
     copied = @proposal.slice(*%w[lives_in_poland address_combine_id city_name street_name c_address_house
                                 c_address_number c_address_postal_code category division_id division_fullname
-                                division_short_name division_min_years_old])
-    proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_POPRAWKOWY, **profile_attributes, **copied.symbolize_keys)
+                                division_short_name division_min_years_old division_face_image_required])
+    proposal = current_user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_POPRAWKOWY, **copied.symbolize_keys)
     proposal.save!(validate: false)
     redirect_to proposal_wizard_path(proposal, Proposal::FORM_STEPS.first), status: :see_other
   end
@@ -70,12 +70,5 @@ class ProposalsController < ApplicationController
   private
     def set_proposal
       @proposal = Proposal.find_by!(multi_app_identifier: params[:multi_app_identifier])
-    end
-
-    def profile_attributes
-      user = current_user
-      { email: user.email, name: user.last_name.to_s, given_names: user.first_name.to_s, pesel: user.pesel.to_s,
-        birth_date: user.birth_date || Pesel.new(user.pesel).birth_date, birth_place: user.birth_city.to_s,
-        family_name: user.family_name.to_s, phone: user.phone.to_s }
     end
 end

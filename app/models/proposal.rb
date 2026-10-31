@@ -63,7 +63,6 @@ class Proposal < ApplicationRecord
   validates :division_id, presence: true, if: [ STEP1, -> { category.present? } ]
   validates :exam_id, presence: true, if: [ STEP1, -> { division_id.present? } ]
   validate :unique_division_for_creator, if: [ STEP1, -> { division_id.present? } ]
-  validate :min_years_old, if: [ STEP1, -> { division_min_years_old.present? && birth_date.present? } ]
 
   validates :email, presence: true, format: { with: /\A[^@\s]+@[^@\s]+\z/ }, if: STEP2
   validates :name, presence: true, length: { in: 1..160 }, if: STEP2
@@ -74,6 +73,8 @@ class Proposal < ApplicationRecord
   validates :birth_date, presence: true, if: STEP2
   validates :family_name, presence: true, length: { in: 1..50 }, if: STEP2
   validate :pesel_valid, if: [ STEP2, -> { pesel.present? } ]
+  # Wiek – po „Dalej” na zakładce 2 (data urodzenia jest na tym formularzu), wymóg rodzaju z NETPAR.
+  validate :min_years_old, if: [ STEP2, -> { division_min_years_old.present? && birth_date.present? } ]
 
   validates :address_combine_id, presence: true, if: [ STEP3, :lives_in_poland? ]
   validates :city_name, presence: true, length: { in: 1..50 }, if: STEP3, unless: :lives_in_poland?
@@ -154,6 +155,7 @@ class Proposal < ApplicationRecord
     self.division_fullname = division["fullname"]
     self.division_short_name = division["short_name"]
     self.division_min_years_old = division["min_years_old"]
+    self.division_face_image_required = division["face_image_required"] == true
   end
 
   def assign_exam(exam)
@@ -177,6 +179,7 @@ class Proposal < ApplicationRecord
   # Krok 1: zmiana kategorii lub rodzaju zeruje dalsze wybory.
   def reset_division
     self.division_id = self.division_fullname = self.division_short_name = self.division_min_years_old = nil
+    self.division_face_image_required = false
     reset_exam
   end
 
@@ -208,7 +211,16 @@ class Proposal < ApplicationRecord
     exam_online? && proposal_status_id == PROPOSAL_STATUS_APPROVED && test_unlocked_for_user?
   end
 
-  def face_image_required? = category == "M"
+  # Wymóg zdjęcia – z NETPAR (ustawienie rodzaju świadectwa „Wymagane zdjęcie”).
+  def face_image_required? = division_face_image_required?
+
+  # Dane osobowe z konta UKE (WSO2). Imię, nazwisko i e-mail – zawsze z konta (na formularzu niezmienialne);
+  # pozostałe – tylko puste, żeby powrót na zakładkę 1 nie nadpisał danych poprawionych na zakładce 2.
+  def fill_from_profile(user)
+    self.email, self.name, self.given_names = user.email, user.last_name.to_s, user.first_name.to_s
+    { pesel: user.pesel.to_s, birth_date: user.birth_date || Pesel.new(user.pesel).birth_date, birth_place: user.birth_city.to_s,
+      family_name: user.family_name.to_s, phone: user.phone.to_s }.each { |attribute, value| self[attribute] = value if self[attribute].blank? }
+  end
 
   def consent_pdf_required? = birth_date.present? && birth_date >= Time.zone.today - 18.years
 
@@ -280,7 +292,7 @@ class Proposal < ApplicationRecord
 
     def min_years_old
       if birth_date + division_min_years_old.years > Time.zone.today
-        errors.add(:division_id, "Przystąpienie do egzaminu wymaga ukończenia #{division_min_years_old} lat")
+        errors.add(:birth_date, "- Przystąpienie do egzaminu wymaga ukończenia #{division_min_years_old} lat")
       end
     end
 

@@ -31,11 +31,24 @@ class ProposalTest < ActiveSupport::TestCase
     assert_equal [ "Data urodzenia niezgodność danych z danymi PESEL" ], proposal.errors.full_messages
   end
 
-  test "minimalny wiek dla rodzaju świadectwa" do
+  test "minimalny wiek dla rodzaju świadectwa – po „Dalej” na zakładce 2, przy dacie urodzenia" do
     proposal = @user.proposals.build(proposal_attributes(division_min_years_old: 18, birth_date: Date.current - 10.years, pesel: ""))
     proposal.form_step = "step1"
+    assert proposal.valid?, "na zakładce 1 wiek nie jest sprawdzany"
+    proposal.form_step = "step2"
     assert_not proposal.valid?
-    assert_includes proposal.errors[:division_id], "Przystąpienie do egzaminu wymaga ukończenia 18 lat"
+    assert_equal [ "Data urodzenia - Przystąpienie do egzaminu wymaga ukończenia 18 lat" ], proposal.errors.full_messages
+  end
+
+  test "dane z konta UKE: imię, nazwisko, e-mail zawsze z konta; pozostałe tylko puste (powrót na zakładkę 1)" do
+    proposal = @user.proposals.build(esod_category: Proposal::ESOD_CATEGORY_EGZAMIN)
+    proposal.fill_from_profile(@user)
+    assert_equal [ "Testowy", "Jan", "jan.testowy@example.com", Date.new(1990, 1, 1), "Gdynia" ],
+                 [ proposal.name, proposal.given_names, proposal.email, proposal.birth_date, proposal.birth_place ]
+
+    proposal.birth_place, proposal.name = "Sopot", "Inne"
+    proposal.fill_from_profile(@user)
+    assert_equal [ "Sopot", "Testowy" ], [ proposal.birth_place, proposal.name ]
   end
 
   test "jedno procedowane zgłoszenie na rodzaj świadectwa" do
@@ -46,8 +59,20 @@ class ProposalTest < ActiveSupport::TestCase
     assert_includes proposal.errors[:division_id], "Jest aktualnie procedowane Twoje zgłoszenie dla tego typu świadectwa"
   end
 
+  test "zdjęcie: wymóg z NETPAR (face_image_required rodzaju), niezależnie od służby" do
+    proposal = @user.proposals.build(proposal_attributes(category: "M"))
+    proposal.assign_division(division_a.merge("face_image_required" => false))
+    assert_not proposal.face_image_required?
+
+    proposal.assign_division(division_a.merge("face_image_required" => true))
+    assert proposal.face_image_required?
+
+    proposal.reset_division
+    assert_not proposal.face_image_required?
+  end
+
   test "załączniki: wymagane wg kategorii i wieku, typ i rozmiar" do
-    proposal = @user.proposals.build(proposal_attributes(category: "M", birth_date: Date.current - 17.years, pesel: ""))
+    proposal = @user.proposals.build(proposal_attributes(category: "M", division_face_image_required: true, birth_date: Date.current - 17.years, pesel: ""))
     proposal.form_step = "step4"
     assert_not proposal.valid?
     assert_equal %i[bank_pdf face_image consent_pdf], proposal.errors.attribute_names

@@ -13,7 +13,7 @@ class WizardTest < ActionDispatch::IntegrationTest
     post "/pl/proposals"
     proposal = @user.proposals.last
     assert_redirected_to wizard(proposal, "step1")
-    assert_equal "Testowy", proposal.name # dane z konta UKE
+    assert_equal [ "", nil ], [ proposal.name, proposal.birth_date ] # dane osobowe – dopiero po zakładce 1
 
     get wizard(proposal, "step1"), params: { category: "R", division_id: 18 }
     assert_response :success
@@ -22,6 +22,8 @@ class WizardTest < ActionDispatch::IntegrationTest
     patch wizard(proposal, "step1"), params: { proposal: { category: "R", division_id: 18, exam_id: 501 } }
     assert_redirected_to wizard(proposal, "step2")
     assert_equal [ "A", "R/1/2026" ], [ proposal.reload.division_short_name, proposal.exam_fullname.split(",").first ]
+    assert_not proposal.division_face_image_required? # z NETPAR (division_a: face_image_required = false)
+    assert_equal [ "Testowy", "Jan", Date.new(1990, 1, 1), "90010100009" ], [ proposal.name, proposal.given_names, proposal.birth_date, proposal.pesel ] # z konta UKE
 
     patch wizard(proposal, "step2"), params: { proposal: { citizenship_code: "PL", birth_place: "Gdynia", birth_date: "1990-01-01", family_name: "Testowy" } }
     assert_redirected_to wizard(proposal, "step3")

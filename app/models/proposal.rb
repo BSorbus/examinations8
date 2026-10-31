@@ -215,6 +215,11 @@ class Proposal < ApplicationRecord
 
   def can_correction_exam? = proposal_status_id == PROPOSAL_STATUS_EXAMINATION_RESULT_N
 
+  # Niezaliczone przedmioty (nazwy) – z ocen w NETPAR; mail z wynikiem i strona zgłoszenia przy wyniku 7.
+  def failed_subject_names(netpar: Netpar::Client.new)
+    netpar.grades_with_result(multi_app_identifier).reject { it["grade_result"] == "P" }.map { it["subject_name"] }
+  end
+
   def test_unlocked_for_user?
     Rails.configuration.x.examinations[:test_for_all_unlocked] || test_unlocked?
   end

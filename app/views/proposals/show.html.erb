@@ -23,6 +23,14 @@
       </div>
     </dl>
     <div class="note"><p><%= sanitize t("proposals.status_comments.#{@proposal.proposal_status_id}"), tags: %w[strong br] %></p></div>
+    <% if @failed_subjects.present? %>
+      <h3 class="field__label" style="margin-top: 16px;"><%= t(".failed_subjects") %></h3>
+      <ul>
+        <% @failed_subjects.each do |name| %>
+          <li><%= name %></li>
+        <% end %>
+      </ul>
+    <% end %>
     <% if @proposal.not_approved_comment.present? %>
       <h3 class="field__label" style="margin-top: 16px;"><%= Proposal.human_attribute_name(:not_approved_comment) %></h3>
       <%= simple_format(@proposal.not_approved_comment) %>

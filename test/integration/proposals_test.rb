@@ -49,6 +49,33 @@ class ProposalsTest < ActionDispatch::IntegrationTest
     assert_equal [ 42, 18, "81-323" ], [ correction.esod_category, correction.division_id, correction.c_address_postal_code ]
   end
 
+  test "wynik negatywny z prawem do poprawki: przedmioty do poprawy z NETPAR na stronie zgłoszenia" do
+    sign_in @user
+    proposal = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_request(:get, "#{NETPAR_URL}/proposals/#{proposal.multi_app_identifier}/grades_with_result")
+      .to_return(json({ grades_with_result: [ { "subject_name" => "Przepisy", "grade_result" => "P" },
+                                              { "subject_name" => "Technika <b>radiowa</b>", "grade_result" => "N" } ] }))
+    get "/pl/proposals/#{proposal.multi_app_identifier}"
+    assert_response :success
+    assert_select "h3", text: "Przedmioty do poprawy"
+    assert_select "li", text: "Technika <b>radiowa</b>" # tekst, nie znaczniki
+    assert_select "li", text: "Przepisy", count: 0
+  end
+
+  test "przedmioty do poprawy: NETPAR niedostępny – strona bez listy; inny status – bez pytania NETPAR" do
+    sign_in @user
+    failed = submitted_proposal(@user, proposal_status_id: Proposal::PROPOSAL_STATUS_EXAMINATION_RESULT_N)
+    stub_request(:get, "#{NETPAR_URL}/proposals/#{failed.multi_app_identifier}/grades_with_result").to_timeout
+    get "/pl/proposals/#{failed.multi_app_identifier}"
+    assert_response :success
+    assert_select "h3", text: "Przedmioty do poprawy", count: 0
+
+    passed = submitted_proposal(@user, proposal_status_id: 9)
+    get "/pl/proposals/#{passed.multi_app_identifier}"
+    assert_response :success
+    assert_not_requested :get, "#{NETPAR_URL}/proposals/#{passed.multi_app_identifier}/grades_with_result"
+  end
+
   test "egzamin online: testy z NETPAR, formularz TestPortal" do
     sign_in @user
     proposal = submitted_proposal(@user, proposal_status_id: 2, exam_online: true, test_unlocked: true)

@@ -8,8 +8,12 @@ class ProposalsController < ApplicationController
     @drafts = current_user.proposals.drafts.order(updated_at: :desc)
   end
 
+  # Przy wyniku „Negatywny z prawem do poprawki” – przedmioty do poprawy z NETPAR (bez NETPAR strona bez tej listy).
   def show
     authorize @proposal
+    @failed_subjects = @proposal.failed_subject_names(netpar:) if @proposal.can_correction_exam?
+  rescue Netpar::Unavailable => e
+    Rails.logger.error("[NETPAR] #{e.message}")
   end
 
   # Nowe zgłoszenie – kreator od zakładki 1; dane osobowe zapisuje dopiero „Dalej” na zakładce 2.

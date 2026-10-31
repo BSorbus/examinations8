@@ -93,6 +93,7 @@ pl:
       title: "Zgłoszenie"
       attachment_open: "Otwórz" # nowe
       history: "Historia zgłoszenia" # nowe
+      failed_subjects: "Przedmioty do poprawy" # nowe
     testportal:
       title: "Przystąp do Egzaminu"
       title_grades: "Testy"

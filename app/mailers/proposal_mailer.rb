@@ -38,8 +38,7 @@ class ProposalMailer < ApplicationMailer
 
   def examination_result_n
     # Przedmioty do poprawki – z NETPAR (podgląd maili podaje je w parametrze need_corrections).
-    @proposal_need_corrections = params[:need_corrections] ||
-      Netpar::Client.new.grades_with_result(@proposal.multi_app_identifier).reject { it["grade_result"] == "P" }.map { it["subject_name"] }
+    @proposal_need_corrections = params[:need_corrections] || @proposal.failed_subject_names
     deliver_mail
   end
 

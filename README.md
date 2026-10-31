@@ -36,10 +36,14 @@ Testy: `bin/rails test` (NETPAR i TERYT – WebMock), `bin/rubocop`, `bin/brakem
 | Plik | Znaczenie |
 |---|---|
 | `config/examinations.yml` | limity czasu NETPAR/TERYT, adres TestPortal, Matomo (witryna 21), `test_for_all_unlocked` |
-| `config/credentials/<środowisko>.yml.enc` | `secret_key_base`, `database`, `host`, `netpar`, `teryt`, `saml`, `smtp`, `test_for_all_unlocked` (przeniesione z `secrets.yml` poprzedniej wersji) |
+| `config/credentials/development.yml.enc`, `test.yml.enc` | lokalnie: `secret_key_base`, `database`, `host`, `netpar`, `teryt`, `saml`, `smtp`, `test_for_all_unlocked` (przeniesione z `secrets.yml` poprzedniej wersji) |
+| `config/deploy/<serwer>/production.yml.enc` + `production.key` | serwery (`test2`, `prod`) – osobny klucz dla każdego serwera; poza gitem, na serwer przez `mina <serwer> credentials:upload` |
 | zmienne środowiskowe | nadpisują credentials, np. `NETPAR_URL`, `DATABASE_HOST`, `MATOMO_ENABLED` – patrz `config/initializers/0_examinations.rb` |
 
-Edycja credentials: `bin/credentials-edit <środowisko>` (zapis także przez dowiązanie na serwerze).
+Edycja credentials: lokalnie `bin/rails credentials:edit --environment development`, serwer –
+`bin/rails encrypted:edit config/deploy/<serwer>/production.yml.enc --key config/deploy/<serwer>/production.key`,
+na serwerze `bin/rails credentials:edit --environment production` (`config/credentials` w wydaniu to dowiązanie
+do `shared/config/credentials`).
 Bez kompletnych ustawień (NETPAR, TERYT, host, a na produkcji SAML i SMTP) aplikacja nie startuje.
 
 ## Baza danych

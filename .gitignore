@@ -29,6 +29,8 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 /config/credentials/*.key
+# Credentials produkcji i serwera testowego są tylko w config/deploy/<serwer>/ (poza gitem, własne klucze).
+/config/credentials/production.yml.enc
 
 # Konfiguracja wdrożeń (adresy serwerów) i credentials przygotowane dla poszczególnych serwerów – tylko lokalnie.
 /config/deploy.rb

@@ -47,4 +47,31 @@ class ApiTest < ActionDispatch::IntegrationTest
     patch "/api/v1/proposals/#{@proposal.multi_app_identifier}", params: { proposal: "nie json" }, headers: headers
     assert_response :unprocessable_content
   end
+
+  test "zgody RODO i historia zgłoszenia: tylko z tokenem; zgoda obowiązująca w chwili wysłania; nieznane zgłoszenie – 404" do
+    user = @proposal.creator
+    user.privacy_consents.create!(version: "2025-01", accepted_at: Time.zone.local(2025, 1, 10, 9, 0), ip: "10.0.0.1")
+    user.privacy_consents.create!(version: "2026-10", accepted_at: Time.zone.local(2026, 10, 30, 12, 0), ip: "10.0.0.2")
+    @proposal.update_columns(submitted_at: Time.zone.local(2026, 10, 1, 8, 0))
+    @proposal.log_event("submitted", exam_id: 501, division_id: 18)
+    @proposal.log_event("netpar_update", proposal_status_id: 2)
+
+    get "/api/v1/proposals/#{@proposal.multi_app_identifier}"
+    assert_response :unauthorized
+
+    get "/api/v1/proposals/#{@proposal.multi_app_identifier}", headers: { "Authorization" => "Token token=#{token}" }
+    assert_response :success
+    body = response.parsed_body
+    assert_equal @proposal.multi_app_identifier, body["multi_app_identifier"]
+    assert_equal [ [ "2025-01", "10.0.0.1", true ], [ "2026-10", "10.0.0.2", false ] ],
+                 body["privacy_consents"].map { it.values_at("version", "ip", "valid_at_submission") }
+    assert_equal [ [ "submitted", "Zgłoszenie wysłane" ], [ "netpar_update", "Zmiana w systemie NETPAR" ] ],
+                 body["events"].map { it.values_at("kind", "name") }
+    assert_equal({ "proposal_status_id" => 2 }, body["events"].last["data"])
+    assert_equal PrivacyConsent.current_version, body["privacy_current_version"]
+    assert_not body.key?("pesel") # bez danych osobowych z formularza
+
+    get "/api/v1/proposals/#{SecureRandom.uuid}", headers: { "Authorization" => "Token token=#{token}" }
+    assert_response :not_found
+  end
 end

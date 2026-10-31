@@ -24,11 +24,11 @@ Rails.application.routes.draw do
   end
   root to: redirect("/pl", status: 302)
 
-  # API dla NETPAR: token i zmiana statusu zgłoszenia (Netpar: EgzaminyUser, EgzaminyProposal).
+  # API dla NETPAR: token, zmiana statusu zgłoszenia oraz odczyt zgód RODO i historii (Netpar: EgzaminyUser, EgzaminyProposal).
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       get :token, to: "base#token"
-      resources :proposals, param: :multi_app_identifier, only: :update
+      resources :proposals, param: :multi_app_identifier, only: %i[show update]
     end
   end
 end

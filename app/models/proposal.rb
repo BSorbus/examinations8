@@ -47,6 +47,7 @@ class Proposal < ApplicationRecord
 
   scope :submitted, -> { where(confirm_that_the_data_is_correct: true) }
   scope :drafts, -> { where(confirm_that_the_data_is_correct: false).where("status IS NULL OR status <> ?", SAVED_IN_NETPAR) }
+  scope :newest_first, -> { order(Arel.sql("COALESCE(proposals.submitted_at, proposals.created_at) DESC")) }
 
   validates :proposal_status_id, presence: true, inclusion: { in: PROPOSAL_STATUSES }
   validates :esod_category, presence: true
@@ -125,10 +126,13 @@ class Proposal < ApplicationRecord
 
   def esod_category_name = ESOD_CATEGORY_NAMES[esod_category]
 
+  # Data zgłoszenia: wysłania do NETPAR (jak w NETPAR), a dla szkicu – rozpoczęcia w kreatorze.
+  def proposal_date = submitted_at || created_at
+
   # „Zgłoszenie 2026-10-29 12:00:00 [Uprawnienia w służbie radioamatorskiej][A]” – jak w poprzedniej wersji.
   def rec_info = I18n.t("proposals.proposal.rec_info", data: rec_info_short)
 
-  def rec_info_short = "#{created_at&.strftime('%Y-%m-%d %H:%M:%S')} [#{category_name}][#{division_short_name}]"
+  def rec_info_short = "#{proposal_date&.strftime('%Y-%m-%d %H:%M:%S')} [#{category_name}][#{division_short_name}]"
 
   def status_name = I18n.t("proposals.status_id_#{proposal_status_id}_name")
 

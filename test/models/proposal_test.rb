@@ -9,6 +9,20 @@ class ProposalTest < ActiveSupport::TestCase
     assert_match(/\A\h{8}-/, proposal.multi_app_identifier)
   end
 
+  test "data zgłoszenia: dla szkicu – rozpoczęcia, po wysłaniu – wysłania (nagłówek, listy, maile); kolejność listy" do
+    draft = complete_proposal(@user)
+    draft.update_columns(created_at: Time.zone.local(2026, 10, 31, 16, 11, 50))
+    assert_match(/\A2026-10-31 16:11:50 \[/, draft.rec_info_short)
+
+    draft.update_columns(submitted_at: Time.zone.local(2026, 10, 31, 20, 15, 13))
+    assert_match(/\A2026-10-31 20:15:13 \[/, draft.rec_info_short)
+    assert_equal "Zgłoszenie #{draft.rec_info_short}", draft.rec_info
+
+    newer_draft = complete_proposal(@user)
+    newer_draft.update_columns(created_at: Time.zone.local(2026, 10, 31, 18, 0, 0))
+    assert_equal [ draft, newer_draft ], @user.proposals.newest_first.to_a
+  end
+
   test "walidacja tylko do bieżącego kroku kreatora" do
     proposal = @user.proposals.build(proposal_attributes(pesel: "90010100005", address_combine_id: nil))
     proposal.form_step = "step1"

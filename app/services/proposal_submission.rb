@@ -4,7 +4,8 @@
 #   1. blokada doradcza PostgreSQL na czas całej operacji – drugie kliknięcie czeka i widzi wysłane zgłoszenie,
 #   2. przed wywołaniem NETPAR zapisujemy (od razu, poza transakcją) „wysyłanie w toku” – REQUIRED_PUSH_TO_NETPAR,
 #   3. jeśli poprzednia próba mogła dotrzeć do NETPAR – najpierw PATCH (aktualizacja), a POST dopiero przy 404,
-#   4. po sukcesie – w jednej transakcji: status SAVED_IN_NETPAR, potwierdzenie danych i wpis w historii;
+#   4. po sukcesie – w jednej transakcji: status SAVED_IN_NETPAR, data zgłoszenia (submitted_at = created_at wniosku
+#      w NETPAR – ta sama w obu systemach, niezależnie od zegarów serwerów), potwierdzenie danych i wpis w historii;
 #      mail wychodzi dopiero po zatwierdzeniu transakcji (Proposal#send_notification, after_commit).
 # Błąd NETPAR (Netpar::Rejected / Netpar::Unavailable) zostawia zgłoszenie do ponownego wysłania.
 class ProposalSubmission
@@ -31,8 +32,7 @@ class ProposalSubmission
       uncertain_previous_attempt = @proposal.status == Proposal::REQUIRED_PUSH_TO_NETPAR
       @proposal.update_columns(status: Proposal::REQUIRED_PUSH_TO_NETPAR, updated_at: Time.current)
       @proposal.update_attachment_paths
-      push(uncertain_previous_attempt)
-      finish
+      finish(push(uncertain_previous_attempt))
       true
     end
   end
@@ -42,21 +42,30 @@ class ProposalSubmission
     # wykonanej w NETPAR po pierwszej, niepotwierdzonej próbie.
     NETPAR_OWNED = %w[proposal_status_id not_approved_comment test_unlocked].freeze
 
+    # Zgłoszenie zapisane w NETPAR (Hash z odpowiedzi).
     def push(uncertain_previous_attempt)
       attributes = @proposal.netpar_attributes.merge("status" => Proposal::SAVED_IN_NETPAR)
-      if uncertain_previous_attempt && @netpar.update_proposal(@proposal.multi_app_identifier, attributes.except(*NETPAR_OWNED))
-        return
+      if uncertain_previous_attempt && (netpar_proposal = @netpar.update_proposal(@proposal.multi_app_identifier, attributes.except(*NETPAR_OWNED)))
+        return netpar_proposal
       end
 
       @netpar.create_proposal(attributes)
     end
 
-    def finish
+    def finish(netpar_proposal)
       Proposal.transaction do
         @proposal.status = Proposal::SAVED_IN_NETPAR
+        @proposal.submitted_at ||= netpar_created_at(netpar_proposal)
         @proposal.save!(validate: false)
         @proposal.log_event("submitted", exam_id: @proposal.exam_id, division_id: @proposal.division_id)
       end
+    end
+
+    # Data przyjęcia zgłoszenia wg NETPAR; gdy odpowiedź jej nie zawiera (starsza wersja NETPAR) – nasz zegar.
+    def netpar_created_at(netpar_proposal)
+      Time.zone.parse(netpar_proposal["created_at"].to_s) || Time.current
+    rescue ArgumentError
+      Time.current
     end
 
     def with_advisory_lock

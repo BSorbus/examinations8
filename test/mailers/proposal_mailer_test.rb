@@ -15,6 +15,14 @@ class ProposalMailerTest < ActionMailer::TestCase
     assert_equal({ "template" => "created", "to" => "jan.testowy@example.com" }, @proposal.events.last.data)
   end
 
+  test "temat i treść: data wysłania zgłoszenia, nie rozpoczęcia szkicu" do
+    @proposal.update_columns(created_at: Time.zone.local(2026, 10, 31, 16, 11, 50), submitted_at: Time.zone.local(2026, 10, 31, 20, 15, 13))
+    mail = ProposalMailer.for_status(@proposal)
+    assert_includes mail.subject, "Zgłoszenie 2026-10-31 20:15:13 ["
+    assert_includes html(mail), "2026-10-31 20:15:13"
+    assert_not_includes html(mail), "16:11:50"
+  end
+
   test "stopka: adres kontaktowy właściwy dla służby (R – wml, M – Gdynia)" do
     footer = html(ProposalMailer.for_status(@proposal)) # zgłoszenie R
     assert_includes footer, "mailto:wml@uke.gov.pl"

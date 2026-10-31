@@ -8,7 +8,8 @@ class ProposalSubmissionTest < ActiveSupport::TestCase
   end
 
   test "wysłanie: POST do NETPAR, status wysłane, historia, mail po zatwierdzeniu" do
-    post = stub_request(:post, "#{NETPAR_URL}/proposals").to_return(json({ id: 1 }, status: 201))
+    post = stub_request(:post, "#{NETPAR_URL}/proposals")
+      .to_return(json({ proposal: { id: 1, created_at: "2026-10-31T20:15:13.000+01:00" } }, status: 201))
 
     assert_enqueued_emails 1 do
       assert ProposalSubmission.new(@proposal, confirmed: true).call
@@ -19,6 +20,27 @@ class ProposalSubmissionTest < ActiveSupport::TestCase
     assert @proposal.confirm_that_the_data_is_correct
     assert_match %r{\A/rails/active_storage/blobs/}, @proposal.bank_pdf_blob_path
     assert_equal [ "submitted" ], @proposal.events.pluck(:kind)
+    assert_equal Time.zone.parse("2026-10-31T20:15:13+01:00"), @proposal.submitted_at # data zgłoszenia wg NETPAR
+  end
+
+  test "data zgłoszenia: po niepewnej próbie – wg NETPAR (chwila pierwszego przyjęcia), przed sukcesem pusta, potem bez zmian" do
+    stub_request(:post, "#{NETPAR_URL}/proposals").to_timeout # NETPAR zapisał, odpowiedź nie dotarła
+    assert_raises(Netpar::Unavailable) { ProposalSubmission.new(@proposal, confirmed: true).call }
+    assert_nil @proposal.reload.submitted_at
+
+    stub_request(:patch, "#{NETPAR_URL}/proposals/#{@proposal.multi_app_identifier}")
+      .to_return(json({ proposal: { id: 1, created_at: "2026-10-31T20:15:13.000+01:00" } }, status: 200))
+    travel 10.minutes do
+      assert ProposalSubmission.new(@proposal, confirmed: true).call
+      assert ProposalSubmission.new(@proposal, confirmed: true).call # już wysłane – bez zmian
+    end
+    assert_equal Time.zone.parse("2026-10-31T20:15:13+01:00"), @proposal.reload.submitted_at
+  end
+
+  test "data zgłoszenia: odpowiedź NETPAR bez created_at – nasz zegar" do
+    stub_request(:post, "#{NETPAR_URL}/proposals").to_return(json({ id: 1 }, status: 201))
+    assert ProposalSubmission.new(@proposal, confirmed: true).call
+    assert_in_delta Time.current, @proposal.reload.submitted_at, 5.seconds
   end
 
   test "bez potwierdzenia danych: nic nie idzie do NETPAR" do

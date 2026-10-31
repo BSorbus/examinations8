@@ -206,6 +206,8 @@ pl:
       proposal:
         status: "Status"
         status_name: "Status zgłoszenia"
+        submitted_at: "Data zgłoszenia (wysłania)" # nowe
+        created_at: "Data rozpoczęcia w kreatorze" # nowe
         creator: "Użytkownik"
         email: "Email"
         name: "Nazwisko"

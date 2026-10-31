@@ -4,7 +4,7 @@ class ProposalsController < ApplicationController
 
   def index
     authorize Proposal
-    @proposals = policy_scope(Proposal).order(created_at: :desc)
+    @proposals = policy_scope(Proposal).newest_first
     @drafts = current_user.proposals.drafts.order(updated_at: :desc)
   end
 

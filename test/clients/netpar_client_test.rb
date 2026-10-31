@@ -23,8 +23,8 @@ class NetparClientTest < ActiveSupport::TestCase
   end
 
   test "zgłoszenie: POST z JSON w parametrze proposal; PATCH 404 → false; 422 → Rejected" do
-    post = stub_request(:post, "#{NETPAR_URL}/proposals").to_return(json({ id: 1 }, status: 201))
-    assert @client.create_proposal("multi_app_identifier" => "abc", "name" => "Kowalski")
+    post = stub_request(:post, "#{NETPAR_URL}/proposals").to_return(json({ proposal: { id: 1, created_at: "2026-10-31T20:15:13.000+01:00" } }, status: 201))
+    assert_equal({ "id" => 1, "created_at" => "2026-10-31T20:15:13.000+01:00" }, @client.create_proposal("multi_app_identifier" => "abc", "name" => "Kowalski"))
     assert_requested post.with { URI.decode_www_form(it.body).to_h["proposal"] == { "multi_app_identifier" => "abc", "name" => "Kowalski" }.to_json }
 
     stub_request(:patch, "#{NETPAR_URL}/proposals/abc").to_return(json({ error: "brak" }, status: 404))

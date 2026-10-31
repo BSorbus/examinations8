@@ -11,9 +11,10 @@ module Netpar
   #   GET    /exams/:id                                sesja (m.in. fullname, date_exam, online)
   #   GET    /exam_fees/find {division_id:, esod_category:, for_date:}  opłata (price, price_under18)
   #   GET    /proposals {creator_id:}                  zgłoszenia użytkownika Egzaminów (komplet pól)
-  #   POST   /proposals          proposal=<JSON>       nowe zgłoszenie → 201 (200 – to samo multi_app_identifier;
-  #                                                   422 – odrzucone, m.in. drugie zgłoszenie w toku na ten sam rodzaj)
-  #   PATCH  /proposals/:multi_app_identifier          zmiana zgłoszenia (np. anulowanie) → 200 (404 – brak w NETPAR)
+  #   POST   /proposals          proposal=<JSON>       nowe zgłoszenie → 201 {"proposal": {…, "created_at"}} (200 – to samo
+  #                                                   multi_app_identifier; 422 – odrzucone, m.in. drugie zgłoszenie w toku
+  #                                                   na ten sam rodzaj)
+  #   PATCH  /proposals/:multi_app_identifier          zmiana zgłoszenia (np. anulowanie) → 200 {"proposal": {…}} (404 – brak w NETPAR)
   # Wysyłanie zgłoszenia jest idempotentne po naszej stronie (ProposalSubmission: przy ponowieniu najpierw PATCH).
   #   GET    /proposals/:multi_app_identifier/grades               testy egzaminu online (TestPortal)
   #   GET    /proposals/:multi_app_identifier/grades_with_result   wyniki testów
@@ -55,17 +56,20 @@ module Netpar
       fetch_json(:get, "proposals", body: { creator_id: }, expect: "proposals")
     end
 
+    # Zgłoszenie zapisane w NETPAR (Hash z odpowiedzi, m.in. created_at).
     def create_proposal(attributes)
       response = request(:post, "proposals", form: { proposal: attributes.to_json })
       ensure_success!(response, Net::HTTPCreated, Net::HTTPOK)
+      proposal_from(response)
     end
 
-    # true – zmienione, false – NETPAR nie ma takiego zgłoszenia (404).
+    # Zgłoszenie po zmianie (Hash z odpowiedzi), false – NETPAR nie ma takiego zgłoszenia (404).
     def update_proposal(multi_app_identifier, attributes)
       response = request(:patch, "proposals/#{multi_app_identifier}", form: { proposal: attributes.to_json })
       return false if response.is_a?(Net::HTTPNotFound)
 
       ensure_success!(response, Net::HTTPOK)
+      proposal_from(response)
     end
 
     # Testy egzaminu online (pusta lista, gdy NETPAR nie ma jeszcze egzaminu dla zgłoszenia).
@@ -151,6 +155,14 @@ module Netpar
         whole ? data : data[expect]
       rescue JSON::ParserError
         raise Unavailable, "NETPAR: odpowiedź nie jest JSON-em (HTTP #{response.code})"
+      end
+
+      # {"proposal": {…}} → {…}; pusty Hash, gdy odpowiedź nie zawiera zgłoszenia (zapis i tak się udał).
+      def proposal_from(response)
+        data = JSON.parse(response.body.to_s)
+        data.is_a?(Hash) ? (data["proposal"].is_a?(Hash) ? data["proposal"] : data) : {}
+      rescue JSON::ParserError
+        {}
       end
 
       # {"errors": {"exam": ["…"]}} → ["exam: …"]

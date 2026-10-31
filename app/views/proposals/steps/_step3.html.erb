@@ -6,10 +6,14 @@
     <%= Proposal.human_attribute_name(:lives_in_poland) %>
   </label>
 
+  <% selected_address = [ [ proposal.city_name, [ proposal.street_attribute, proposal.street_name ].compact_blank.join(" ") ].compact_blank.join(", "),
+                          [ proposal.commune_name, proposal.district_name, proposal.province_name ].compact_blank.join(", ") ].compact_blank.join(" – ") if proposal.lives_in_poland? %>
   <div data-toggle-target="whenChecked" data-controller="address" <%= "hidden" unless proposal.lives_in_poland? %>
        data-address-url-value="<%= address_lookup_path %>" data-address-type-more-value="<%= t("proposals.wizard.step3.type_more") %>"
        data-address-no-results-value="<%= t("proposals.wizard.step3.no_results") %>"
-       data-address-numbers-value="<%= t("proposals.wizard.step3.numbers") %>">
+       data-address-numbers-value="<%= t("proposals.wizard.step3.numbers") %>"
+       data-address-results-value="<%= t("proposals.wizard.step3.results") %>"
+       data-address-postal-code-field-value="proposal_c_address_postal_code">
     <div class="field combobox">
       <label class="field__label" for="proposal_address_combine_id"><%= Proposal.human_attribute_name(:address_combine_id) %> <span class="required" aria-hidden="true">*</span></label>
       <input type="text" id="proposal_address_combine_id" class="form-control form-control-sm" autocomplete="off"
@@ -20,11 +24,13 @@
       <ul id="address_options" role="listbox" class="combobox__list" hidden data-address-target="list"></ul>
       <span class="combobox__status" role="status" aria-live="polite" data-address-target="status"></span>
       <%= f.hidden_field :address_combine_id, data: { address_target: "value" } %>
-      <p><%= t("proposals.wizard.step3.selected") %> <span class="selected-address" data-address-target="selected"><%=
-        [ [ proposal.city_name, [ proposal.street_attribute, proposal.street_name ].compact_blank.join(" ") ].compact_blank.join(", "),
-          [ proposal.commune_name, proposal.district_name, proposal.province_name ].compact_blank.join(", ") ].compact_blank.join(" – ").presence || "–" if proposal.lives_in_poland? %></span></p>
+      <%# Wybrany adres – widoczny dopiero po wybraniu pozycji z listy (albo gdy adres jest już zapisany). %>
+      <p class="selected-address-line" data-address-target="selectedLine" <%= "hidden" if selected_address.blank? %>>
+        <%= t("proposals.wizard.step3.selected") %> <strong class="selected-address" data-address-target="selected"><%= selected_address %></strong>
+      </p>
       <%= field_error(proposal, :address_combine_id) %>
-      <span class="field__hint" id="address_combine_id_hint"><%= t("proposals.wizard.step3.address_hint") %> <%= t("proposals.wizard.step3.not_found_hint") %></span>
+      <%# Podpowiedź: dla czytników ekranu powiązana z polem (aria-describedby); dla widzących – „Jak wyszukać adres?” u dołu. %>
+      <span class="visually-hidden" id="address_combine_id_hint"><%= t("proposals.wizard.step3.address_hint") %> <%= t("proposals.wizard.step3.not_found_hint") %></span>
     </div>
   </div>
 
@@ -38,5 +44,11 @@
     <%= form_field(f, :c_address_number) { f.text_field :c_address_number, class: "form-control form-control-sm", aria: field_aria(proposal, :c_address_number) } %>
     <%= form_field(f, :c_address_postal_code, required: true) { f.text_field :c_address_postal_code, class: "form-control form-control-sm", autocomplete: "postal-code", aria: field_aria(proposal, :c_address_postal_code) } %>
   </div>
+  <%# Jak w confirmation8: rozwijana podpowiedź u dołu formularza, nad przyciskami (tylko przy „Mieszkam w Polsce”). %>
+  <details class="help-details" data-toggle-target="whenChecked" <%= "hidden" unless proposal.lives_in_poland? %>>
+    <summary><%= t("proposals.wizard.step3.address_help") %></summary>
+    <p><%= t("proposals.wizard.step3.address_hint") %></p>
+    <p><%= t("proposals.wizard.step3.not_found_hint") %></p>
+  </details>
   <%= render "navigation" %>
 <% end %>

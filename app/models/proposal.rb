@@ -120,6 +120,9 @@ class Proposal < ApplicationRecord
 
   def category_name = CATEGORY_NAMES[category]
 
+  # Adres kontaktowy właściwy dla służby (stopka maili): M – Gdynia, pozostałe – służba radioamatorska / lotnicza.
+  def contact_email = I18n.t(category == "M" ? "layouts.footer.contact_mor_mail" : "layouts.footer.contact_mail")
+
   def esod_category_name = ESOD_CATEGORY_NAMES[esod_category]
 
   # „Zgłoszenie 2026-10-29 12:00:00 [Uprawnienia w służbie radioamatorskiej][A]” – jak w poprzedniej wersji.
@@ -142,6 +145,8 @@ class Proposal < ApplicationRecord
     self.street_code = item["streetCode"].presence || ""
     self.street_name = item["streetName"].presence || ""
     self.street_attribute = item["streetAttribute"].presence || ""
+    # Pozycja TERYT dotyczy jednego kodu pocztowego (combineId kończy się kodem) – kod zawsze zgodny z wybranym adresem.
+    self.c_address_postal_code = item["postCode"] if item["postCode"].present?
   end
 
   # Krok 3: adres poza Polską – bez kodów TERYT (miejscowość i ulicę wpisuje użytkownik).

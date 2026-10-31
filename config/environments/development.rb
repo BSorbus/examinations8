@@ -39,9 +39,9 @@ Rails.application.configure do
 
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
-  # Maile nie wychodzą – zapisywane do tmp/mails (podgląd: /rails/mailers).
-  config.action_mailer.delivery_method = :file
-  config.action_mailer.file_settings = { location: Rails.root.join("tmp/mails") }
+  # Maile nie wychodzą – letter_opener otwiera każdy mail w przeglądarce (kopie w tmp/letter_opener; szablony: /rails/mailers).
+  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.perform_deliveries = true
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

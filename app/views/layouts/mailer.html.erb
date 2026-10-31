@@ -46,8 +46,10 @@
                   <tr>
                     <td valign="middle"><%= image_tag(attachments["logo_uke.png"].url, alt: "Urząd Komunikacji Elektronicznej", style: "display: block; max-width: 180px; height: auto;") %></td>
                     <td valign="middle" style="text-align: right; font-size: 13px; line-height: 1.7;">
-                      <%= mail_to "wml@uke.gov.pl", nil, style: "color: #1B3C8F;" %><br>
-                      <%= mail_to "ske.gdynia@uke.gov.pl", nil, style: "color: #1B3C8F;" %>
+                      <%# Kontakt właściwy dla służby zgłoszenia (M – Gdynia, R/L – wml); bez zgłoszenia – oba. %>
+                      <% (@proposal ? [ @proposal.contact_email ] : [ t("layouts.footer.contact_mail"), t("layouts.footer.contact_mor_mail") ]).each_with_index do |email, i| %>
+                        <%= tag.br if i.positive? %><%= mail_to email, nil, style: "color: #1B3C8F;" %>
+                      <% end %>
                     </td>
                   </tr>
                 </table>

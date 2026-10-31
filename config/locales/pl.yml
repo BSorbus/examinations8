@@ -123,12 +123,13 @@ pl:
       change: "Zmień" # nowe
       progress_label: "Kroki zgłoszenia" # nowe
       step_of: "Krok %{current} z %{total}" # nowe
-      documents_html: >-
-        <p>Do poprawnej rejestracji zgłoszenia będziesz potrzebował(-a) dołączyć następujące dokumenty (w formacie PDF):</p>
+      documents_html: >- # nowe: tytuł przelewu zależny od służby (dawniej „…egzaminu amatorskiego”), zdjęcie gdy wymagane, bez „(w formacie PDF)”, zgoda opiekuna – wiek w dniu egzaminu
+        <p>Do poprawnej rejestracji zgłoszenia będziesz potrzebował(-a) dołączyć następujące dokumenty:</p>
         <ul>
-        <li>Potwierdzenie dokonania wpłaty: w tytule przelewu wpisać: „za przeprowadzenie egzaminu amatorskiego”<br>
+        <li>Potwierdzenie dokonania wpłaty: w tytule przelewu wpisać tytuł podany przy opłacie (zakładka „Opłata i załączniki” – zależny od służby)<br>
         Urząd Komunikacji Elektronicznej<br>ul. Giełdowa 7/9<br>01-211 Warszawa<br>Nr konta: 75 1010 1010 0060 4422 3100 0000</li>
-        <li>W przypadku osób niepełnoletnich skan pisemnej zgody opiekuna prawnego na przystąpienie do egzaminu.</li>
+        <li>Zdjęcie (format JPG lub PNG) – jeżeli jest wymagane dla wybranego rodzaju świadectwa (np. świadectwa morskie).</li>
+        <li>W przypadku osób, które w dniu egzaminu będą niepełnoletnie – skan pisemnej zgody opiekuna prawnego na przystąpienie do egzaminu.</li>
         </ul>
       step1:
         sessions_hint: "Lista sesji, które odbędą się nie wcześniej niż za %{days} dni, dla których dostępne są jeszcze wolne miejsca."
@@ -157,7 +158,9 @@ pl:
         address_hint: "W polu \"Adres\" wyrazy oddzielaj spacją. Np. osielsko grzybowa lub fordońska 85-79"
         not_found_hint: "Wyłącz \"Mieszkam w Polsce\" (odznacz checkbox) jeżeli nie możesz znaleźć swojego adresu."
         selected: "Wybrany adres:" # nowe
+        address_help: "Jak wyszukać adres?" # nowe
         no_results: "Brak adresów – spróbuj innych słów." # nowe
+        results: "Znaleziono adresów: %{count} – wybierz adres z listy." # nowe (tylko dla czytników ekranu)
         type_more: "Wpisz co najmniej 3 znaki." # nowe
         numbers: "numery:"
       step4:
@@ -166,13 +169,16 @@ pl:
         recipient: "Odbiorca" # nowe
         account: "Numer konta" # nowe
         transfer_title: "Tytuł przelewu" # nowe
-        transfer_title_value: "za przeprowadzenie egzaminu amatorskiego"
+        transfer_title_value: # nowe: wg służby (dawniej dla wszystkich „za przeprowadzenie egzaminu amatorskiego”)
+          M: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej morskiej i żeglugi śródlądowej"
+          R: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej amatorskiej"
+          L: "za przeprowadzenie egzaminu w służbie radiokomunikacyjnej lotniczej"
         copy: "Kopiuj" # nowe
         copied: "Skopiowano" # nowe
         current_file: "Dołączony plik: %{name}" # nowe
         bank_pdf_hint: "Bankowe potwierdzenie wykonania przelewu winnno być plikiem typu \"pdf\" pobranym ze strony WWW Twojego banku."
         face_image_hint: "Należy dołączać aktualne zdjęcie, odzwierciedlające wizerunek twarzy w sposób niebudzący wątpliwości, o wymiarach 35×45 mm, minimalnej rozdzielczości 300 dpi, wykonane na jednolitym jasnym tle, mające dobrą ostrość oraz odwzorowujące naturalny kolor skóry, obejmujące wizerunek od wierzchołka głowy do górnej części barków, tak aby twarz zajmowała 70–80% zdjęcia, pokazujące wyraźnie oczy, zwłaszcza źrenice i przedstawiające osobę w pozycji frontalnej, bez nakrycia głowy i okularów z ciemnymi szkłami, patrzącą na wprost z otwartymi oczami, nieprzesłoniętymi włosami, z naturalnym wyrazem twarzy i zamkniętymi ustami (podobnie jak zdjęcia do dowodu osobistego lub paszportu)."
-        consent_pdf_hint: "W przypadku gdy Zgłoszenie składane jest przez osobę niepełnoletnią należy dołączać upoważnienie rodzica lub prawnego opiekuna."
+        consent_pdf_hint: "Jeżeli w dniu egzaminu będziesz osobą niepełnoletnią, dołącz zgodę rodzica lub opiekuna prawnego." # nowe: wiek w dniu egzaminu (dawniej: „…składane jest przez osobę niepełnoletnią…”)
         other_pdf_hint: "Jeżeli chcesz przekazać inny załącznik (format pdf), to umieść go w polu \"inny załącznik\"."
         no_fee: "Brak opłaty dla wybranego rodzaju świadectwa – skontaktuj się z urzędem." # nowe
 

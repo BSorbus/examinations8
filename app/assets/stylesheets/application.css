@@ -190,6 +190,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .field--checkbox { align-self: end; }
 .checkbox { display: flex; align-items: center; gap: 10px; min-height: 31px; cursor: pointer; font-size: 0.875rem; }
 .checkbox input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); }
+/* Zakładka 5: potwierdzenie danych przed wysłaniem – wyraźna ramka (barwy UKE: granat + limonkowy pasek). */
+.confirm-box { border: 2px solid var(--accent); border-left: 8px solid var(--uke-lime); border-radius: 8px; background: var(--surface-accent);
+  padding: 14px 18px; margin: 8px 0 4px; }
+.confirm-box .checkbox { font-size: 1rem; font-weight: 700; gap: 12px; }
+.confirm-box .checkbox input { width: 24px; height: 24px; }
+.confirm-box--invalid { border-color: var(--bad); border-left-color: var(--bad); background: var(--bad-bg); }
 
 .form-actions {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
@@ -264,6 +270,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .card-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 24px; align-items: start; }
 .note { background: var(--surface-muted); border-left: 4px solid var(--accent); border-radius: 6px; padding: 12px 16px; font-size: 0.95rem; }
 .note p:last-child, .note ul:last-child { margin-bottom: 0; }
+/* Rozwijana podpowiedź pod polem (jak „Jak wpisać znaki narodowe…” w confirmation8). */
+.help-details { background: var(--surface-muted); border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; }
+.help-details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.help-details p { margin: 8px 0 0; }
+.selected-address-line { margin: 4px 0 0; }
 /* Zakładka 1: inne niedokończone zgłoszenia na ten sam rodzaj – data i przyciski w jednym wierszu. */
 .other-drafts { margin-bottom: 16px; }
 .other-drafts__list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
@@ -300,11 +311,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* Kreator, krok 3: wyszukiwarka adresów (combobox) */
 .combobox { position: relative; }
 .combobox__list { position: absolute; z-index: 10; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px 0; list-style: none;
-  max-height: 320px; overflow-y: auto; background: var(--surface); border: 1px solid var(--field-border); border-radius: 6px; box-shadow: var(--shadow); }
-.combobox__option { padding: 8px 12px; cursor: pointer; font-size: 0.875rem; }
+  max-height: 320px; overflow-y: auto; background: var(--surface); border: 2px solid var(--accent); border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(16, 38, 92, .22); } /* wyraźna ramka w kolorze akcentu – lista nie zlewa się z formularzem */
+.combobox__option { padding: 8px 12px; cursor: pointer; font-size: 0.875rem; border-left: 4px solid transparent; }
+.combobox__option + .combobox__option { border-top: 1px solid var(--surface-accent); }
 .combobox__option small { color: var(--ink-muted); }
 .combobox__numbers { display: inline-block; margin-top: 2px; }
-.combobox__option[aria-selected="true"], .combobox__option:hover { background: var(--surface-accent); }
+.combobox__option[aria-selected="true"], .combobox__option:hover { background: var(--surface-accent); border-left-color: var(--accent); }
 .combobox__status { font-size: 0.875rem; color: var(--ink-muted); }
 .selected-address { font-weight: 600; }
 
@@ -394,7 +407,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 :root[data-theme="contrast"] .form-control, :root[data-theme="contrast"] .form-select { background-color: #000000; color: #FFFFFF; }
 :root[data-theme="contrast"] .required { color: #FFFF00; }
 
-:root[data-theme="contrast"] :is(.card, .note, .session, .proposal-item, .combobox__list) { border: 2px solid #FFFFFF; }
+:root[data-theme="contrast"] :is(.card, .note, .session, .proposal-item, .combobox__list, .help-details, .confirm-box) { border: 2px solid #FFFFFF; }
 :root[data-theme="contrast"] .session:has(input:checked) { border-color: #FFFF00; }
 :root[data-theme="contrast"] :is(.status, .badge-online) { border: 2px solid currentColor; background: #000000; color: #FFFFFF; }
 :root[data-theme="contrast"] .wizard-progress .is-current { color: #FFFF00; border-color: #FFFF00; }

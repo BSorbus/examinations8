@@ -35,17 +35,19 @@ class WizardTest < ActionDispatch::IntegrationTest
     assert_equal [ "Testowy", "Jan", "jan.testowy@example.com", Date.new(1990, 1, 1), "90010100009" ],
                  [ proposal.reload.name, proposal.given_names, proposal.email, proposal.birth_date, proposal.pesel ] # zapis po zakładce 2
 
-    patch wizard(proposal, "step3"), params: { proposal: { lives_in_poland: "1", address_combine_id: teryt_address["combineId"], c_address_house: "1", c_address_postal_code: "81-323" } }
+    patch wizard(proposal, "step3"), params: { proposal: { lives_in_poland: "1", address_combine_id: teryt_address["combineId"], c_address_house: "1", c_address_postal_code: "00-000" } }
     assert_redirected_to wizard(proposal, "step4")
-    assert_equal "Morska", proposal.reload.street_name
+    assert_equal [ "Morska", "81-323" ], [ proposal.reload.street_name, proposal.c_address_postal_code ] # kod z wybranej pozycji TERYT
 
     get wizard(proposal, "step4")
     assert_select "dd", text: /75,00 PLN/
+    assert_select "dd", text: /za przeprowadzenie egzaminu w służbie radiokomunikacyjnej amatorskiej/ # tytuł przelewu wg służby (R)
     patch wizard(proposal, "step4"), params: { proposal: { bank_pdf: fixture_file_upload("przelew.pdf", "application/pdf") } }
     assert_redirected_to wizard(proposal, "step5")
 
     get wizard(proposal, "step5")
     assert_select "a", text: "Zmień", count: 4
+    assert_select ".confirm-box input[name='proposal[confirm_that_the_data_is_correct]']" # potwierdzenie w wyraźnej ramce
     netpar_post = stub_request(:post, "#{NETPAR_URL}/proposals").to_return(json({}, status: 201))
     patch wizard(proposal, "step5"), params: { proposal: { confirm_that_the_data_is_correct: "1" } }
     assert_redirected_to "/pl/proposals"

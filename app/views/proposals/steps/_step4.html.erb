@@ -5,7 +5,7 @@
     <% rows = { amount: price(proposal.exam_fee_price),
                 recipient: "Urząd Komunikacji Elektronicznej, ul. Giełdowa 7/9, 01-211 Warszawa",
                 account: "75 1010 1010 0060 4422 3100 0000",
-                transfer_title: t("proposals.wizard.step4.transfer_title_value") } %>
+                transfer_title: t("proposals.wizard.step4.transfer_title_value.#{proposal.category}") } %>
     <dl class="payment">
       <% rows.each do |key, value| %>
         <dt><%= t("proposals.wizard.step4.#{key}") %></dt>

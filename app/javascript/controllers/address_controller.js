@@ -3,8 +3,8 @@ import { Controller } from "@hotwired/stimulus"
 // Wyszukiwarka adresów TERYT – combobox (ARIA 1.2): pole tekstowe + lista podpowiedzi, obsługa klawiaturą
 // (strzałki, Enter, Escape). Wybrany adres zapisywany w ukrytym polu address_combine_id.
 export default class extends Controller {
-  static targets = ["input", "list", "value", "status", "selected"]
-  static values = { url: String, typeMore: String, noResults: String, numbers: String }
+  static targets = ["input", "list", "value", "status", "selected", "selectedLine"]
+  static values = { url: String, typeMore: String, noResults: String, numbers: String, results: String, postalCodeField: String }
 
   connect() {
     this.items = []
@@ -16,7 +16,7 @@ export default class extends Controller {
     const query = this.inputTarget.value.trim()
     if (query.length < 3) {
       this.close()
-      this.statusTarget.textContent = this.typeMoreValue
+      this.setStatus(this.typeMoreValue)
       return
     }
     this.timer = setTimeout(() => this.fetch(query), 250)
@@ -33,7 +33,7 @@ export default class extends Controller {
       this.render()
     } catch (error) {
       this.close()
-      this.statusTarget.textContent = error.message || ""
+      this.setStatus(error.message || "")
     }
   }
 
@@ -63,7 +63,14 @@ export default class extends Controller {
     })
     this.listTarget.hidden = this.items.length === 0
     this.inputTarget.setAttribute("aria-expanded", String(this.items.length > 0))
-    this.statusTarget.textContent = this.items.length === 0 ? this.noResultsValue : `${this.items.length}`
+    // Liczba wyników – tylko dla czytników ekranu (na ekranie widać listę); „brak adresów” – widoczne dla wszystkich.
+    this.setStatus(this.items.length === 0 ? this.noResultsValue : this.resultsValue.replace("%{count}", this.items.length),
+                   this.items.length > 0)
+  }
+
+  setStatus(text, screenReaderOnly = false) {
+    this.statusTarget.textContent = text
+    this.statusTarget.classList.toggle("visually-hidden", screenReaderOnly)
   }
 
   label(item) {
@@ -100,6 +107,10 @@ export default class extends Controller {
     this.valueTarget.value = item.combineId
     const numbers = item.postCodeNumbers ? ` (${this.numbersValue} ${item.postCodeNumbers})` : ""
     this.selectedTarget.textContent = `${this.label(item)}, ${item.postCode}${numbers} – ${[item.communeName, item.districtName, item.provinceName].join(", ")}`
+    this.selectedLineTarget.hidden = false
+    // Kod pocztowy z wybranej pozycji TERYT (jak w poprzedniej wersji; na serwerze ustawiany tak samo).
+    const postalCode = document.getElementById(this.postalCodeFieldValue)
+    if (postalCode && item.postCode) postalCode.value = item.postCode
     this.inputTarget.value = ""
     this.close()
   }

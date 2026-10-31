@@ -4,10 +4,13 @@
 </div>
 
 <%= form_with model: proposal, url: proposal_wizard_path(proposal, "step5"), method: :patch, class: "form-section", html: { novalidate: true } do |f| %>
-  <label class="checkbox" id="proposal_confirm_that_the_data_is_correct_label">
-    <%= f.check_box :confirm_that_the_data_is_correct, aria: field_aria(proposal, :confirm_that_the_data_is_correct) %>
-    <%= Proposal.human_attribute_name(:confirm_that_the_data_is_correct) %> <span class="required" aria-hidden="true">*</span>
-  </label>
-  <%= field_error(proposal, :confirm_that_the_data_is_correct) %>
+  <%# Potwierdzenie danych – jedyne pole przed wysłaniem; wyraźna ramka (przy błędzie – czerwona). %>
+  <div class="confirm-box<%= " confirm-box--invalid" if proposal.errors.include?(:confirm_that_the_data_is_correct) %>">
+    <label class="checkbox" id="proposal_confirm_that_the_data_is_correct_label">
+      <%= f.check_box :confirm_that_the_data_is_correct, aria: field_aria(proposal, :confirm_that_the_data_is_correct) %>
+      <%= Proposal.human_attribute_name(:confirm_that_the_data_is_correct) %> <span class="required" aria-hidden="true">*</span>
+    </label>
+    <%= field_error(proposal, :confirm_that_the_data_is_correct) %>
+  </div>
   <%= render "navigation", label: t("proposals.wizard.submit") %>
 <% end %>

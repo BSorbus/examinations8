@@ -15,6 +15,17 @@ class ProposalMailerTest < ActionMailer::TestCase
     assert_equal({ "template" => "created", "to" => "jan.testowy@example.com" }, @proposal.events.last.data)
   end
 
+  test "stopka: adres kontaktowy właściwy dla służby (R – wml, M – Gdynia)" do
+    footer = html(ProposalMailer.for_status(@proposal)) # zgłoszenie R
+    assert_includes footer, "mailto:wml@uke.gov.pl"
+    assert_not_includes footer, "ske.gdynia@uke.gov.pl"
+
+    @proposal.update_columns(category: "M")
+    footer = html(ProposalMailer.for_status(@proposal))
+    assert_includes footer, "mailto:ske.gdynia@uke.gov.pl"
+    assert_not_includes footer, "wml@uke.gov.pl"
+  end
+
   test "zaakceptowane online – osobny szablon" do
     @proposal.update_columns(proposal_status_id: 2, exam_online: true)
     assert_match "LOGIN oraz HASŁO", html(ProposalMailer.for_status(@proposal))

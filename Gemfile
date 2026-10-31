@@ -31,6 +31,7 @@ end
 group :development do
   gem "web-console"
   gem "mina", require: false
+  gem "letter_opener" # maile w dev otwierane w przeglądarce (nic nie wychodzi na zewnątrz)
 end
 
 group :test do

@@ -57,14 +57,15 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  # Set host to be used by links generated in mailer templates.
-  # Linki w mailach i poczta – adres aplikacji i serwer SMTP z credentials (host, smtp.*).
-  config.action_mailer.default_url_options = { host: config.x.examinations[:host], protocol: "https" }
+  # Linki w mailach i poczta – adres aplikacji i serwer SMTP z credentials (host, smtp.*). Oba ustawiane po inicjalizacji:
+  # host uzupełnia config/initializers/0_examinations.rb, który działa dopiero po wczytaniu tego pliku (wcześniej
+  # default_url_options dostawało host: nil – „Missing host to link to!” i żaden mail nie wychodził).
   config.action_mailer.delivery_method = :smtp
   # Jak w poprzedniej wersji: wewnętrzny serwer poczty bez logowania i bez STARTTLS (smtp.user_name – adres
   # nadawcy; hasło przeniesione z secrets.yml, ale nieużywane). Logowanie – tylko przy smtp.authentication
   # (np. login), STARTTLS – przy smtp.starttls: true.
   config.after_initialize do
+    ActionMailer::Base.default_url_options = { host: config.x.examinations[:host], protocol: "https" }
     smtp = config.x.examinations[:smtp]
     login = smtp[:authentication].presence
     ActionMailer::Base.smtp_settings = {

@@ -147,8 +147,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .date-field .form-control { flex: 1 1 auto; min-width: 0; }
 .date-field__picker { position: relative; display: inline-flex; }
 .date-field__button {
-  display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0;
-  border: 1px solid var(--field-border); border-radius: 6px; background: var(--surface); color: var(--accent); cursor: pointer;
+  /* Wysokość jak pole form-control-sm (rozciągane przez flex), bez własnego min-height – przycisk nie może podwyższać wiersza. */
+  display: inline-flex; align-items: center; justify-content: center; min-width: 2.25rem; padding: 0 0.5rem;
+  border: 1px solid var(--field-border); border-radius: var(--bs-border-radius-sm, 0.25rem); background: var(--surface); color: var(--accent); cursor: pointer;
 }
 .date-field__button:hover { background: var(--surface-accent); }
 .date-field__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; }
@@ -156,6 +157,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .date-field--grouped .form-control { border: 1px solid var(--field-border); border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .date-field--grouped .form-control[aria-invalid="true"] { border: 2px solid var(--bad); border-right: 0; }
 .date-field--grouped .date-field__button { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.date-field--grouped.date-field--invalid .date-field__button { border: 2px solid var(--bad); border-left: 1px solid var(--field-border); }
 
 /* Nagłówek */
 .site-header { background: var(--surface); border-bottom: 4px solid var(--uke-lime); }

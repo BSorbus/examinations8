@@ -38,7 +38,7 @@ module ApplicationHelper
         data: { "date-field-target": "native", action: "change->date-field#sync" })
       safe_join([ button, native ])
     end
-    tag.div safe_join([ text, picker ]), class: "date-field", data: { controller: "date-field" }
+    tag.div safe_join([ text, picker ]), class: [ "date-field", ("date-field--invalid" if record.errors.include?(attribute)) ], data: { controller: "date-field" }
   end
 
   def calendar_icon

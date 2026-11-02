@@ -10,6 +10,7 @@ export default class extends Controller {
     // Kalendarz pokazujemy tylko tam, gdzie przeglądarka wspiera showPicker(); inaczej zostaje samo pole tekstowe.
     if (this.hasButtonTarget && this.hasNativeTarget && typeof this.nativeTarget.showPicker === "function") {
       this.buttonTarget.hidden = false
+      this.element.classList.add("date-field--grouped") // przycisk przylega do pola (jak dawne input-group)
     }
   }
 

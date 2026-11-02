@@ -143,7 +143,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .form-control:disabled { background: var(--surface-disabled); color: var(--ink-disabled); }
 
 /* Pole daty ze sztywnym formatem RRRR-MM-DD: pole tekstowe + przycisk otwierający natywny kalendarz (JS). */
-.date-field { display: flex; align-items: stretch; gap: 6px; }
+.date-field { display: flex; align-items: stretch; }
 .date-field .form-control { flex: 1 1 auto; min-width: 0; }
 .date-field__picker { position: relative; display: inline-flex; }
 .date-field__button {
@@ -152,6 +152,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .date-field__button:hover { background: var(--surface-accent); }
 .date-field__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; }
+/* Przycisk kalendarza przylega do pola (jak dawne input-group) – tylko gdy kalendarz jest aktywny (JS pokazuje przycisk). */
+.date-field--grouped .form-control { border: 1px solid var(--field-border); border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.date-field--grouped .form-control[aria-invalid="true"] { border: 2px solid var(--bad); border-right: 0; }
+.date-field--grouped .date-field__button { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 
 /* Nagłówek */
 .site-header { background: var(--surface); border-bottom: 4px solid var(--uke-lime); }

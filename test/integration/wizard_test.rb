@@ -28,6 +28,10 @@ class WizardTest < ActionDispatch::IntegrationTest
     get wizard(proposal, "step2") # formularz podpowiada dane z konta UKE, bez zapisu
     assert_select "input[name='proposal[name]'][value='Testowy']"
     assert_select "input[name='proposal[pesel]'][value='90010100009']"
+    # Data urodzenia: sztywny format RRRR-MM-DD (pole tekstowe z kontrolką), nie natywne type=date
+    assert_select "input[name='proposal[birth_date]'][type=text][placeholder=?]", "RRRR-MM-DD"
+    assert_select ".date-field[data-controller=?]", "date-field"
+    assert_select "input.date-field__native[type=date]"
     assert_equal "", proposal.reload.name
 
     patch wizard(proposal, "step2"), params: { proposal: { pesel: "90010100009", citizenship_code: "PL", birth_place: "Gdynia", birth_date: "1990-01-01", family_name: "Testowy" } }

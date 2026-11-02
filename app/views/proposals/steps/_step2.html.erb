@@ -19,7 +19,7 @@
   </div>
   <div class="field-row">
     <%= form_field(f, :birth_place, required: true) { f.text_field :birth_place, class: "form-control form-control-sm", aria: field_aria(proposal, :birth_place) } %>
-    <%= form_field(f, :birth_date, required: true) { f.date_field :birth_date, class: "form-control form-control-sm", aria: field_aria(proposal, :birth_date) } %>
+    <%= form_field(f, :birth_date, required: true) { iso_date_field(f, proposal, :birth_date, required: true) } %>
     <%= form_field(f, :family_name, required: true) { f.text_field :family_name, class: "form-control form-control-sm", aria: field_aria(proposal, :family_name) } %>
   </div>
   <%= render "navigation" %>

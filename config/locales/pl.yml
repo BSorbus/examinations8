@@ -281,6 +281,9 @@ pl:
   helpers:
     select:
       prompt: "Proszę wybrać"
+    date_field:
+      format: "RRRR-MM-DD"
+      pick: "Wybierz datę z kalendarza"
     links:
       index: "Lista"
       show: "Pokaż szczegóły"

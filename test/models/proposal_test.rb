@@ -228,6 +228,38 @@ class ProposalTest < ActiveSupport::TestCase
     assert_equal [ fresh, sent, uncertain ].map(&:id).sort, Proposal.where(id: [ stale, never_saved, uncertain, fresh, sent ].map(&:id)).ids.sort
   end
 
+  test "czyszczenie niedokończonych usuwa od razu pliki i bloby załączników (bez zadań w tle)" do
+    proposal = draft_proposal(@user, status: "step4")
+    proposal.bank_pdf.attach(io: file_fixture("przelew.pdf").open, filename: "przelew.pdf", content_type: "application/pdf")
+    proposal.face_image.attach(io: file_fixture("zdjecie.png").open, filename: "zdjecie.png", content_type: "image/png")
+    proposal.update_columns(updated_at: 31.days.ago)
+    keys = [ proposal.bank_pdf.key, proposal.face_image.key ]
+
+    assert_no_enqueued_jobs(only: ActiveStorage::PurgeJob) { assert_equal 1, Proposal.clean_unsaved }
+    assert_empty ActiveStorage::Blob.where(key: keys)
+    keys.each { assert_not ActiveStorage::Blob.service.exist?(it), "plik #{it} został na dysku" }
+  end
+
+  test "niepotrzebne załączniki usuwane od razu (bez zadań w tle), nowy plik z tego samego żądania zostaje" do
+    proposal = draft_proposal(@user, status: "step4", division_face_image_required: false)
+    proposal.face_image.attach(io: file_fixture("zdjecie.png").open, filename: "zdjecie.png", content_type: "image/png")
+    proposal.other_pdf.attach(io: file_fixture("przelew.pdf").open, filename: "inny.pdf", content_type: "application/pdf")
+    keys = [ proposal.face_image.key, proposal.other_pdf.key ]
+
+    # Jak w kreatorze (zakładka 4): zgłoszenie wczytane od nowa, nowy plik przelewu i „usuń inny załącznik” w jednym żądaniu.
+    proposal = Proposal.find(proposal.id)
+    proposal.assign_attributes(bank_pdf: Rack::Test::UploadedFile.new(file_fixture("przelew.pdf"), "application/pdf"), remove_other_pdf: "1")
+    assert_no_enqueued_jobs(only: ActiveStorage::PurgeJob) { proposal.purge_unneeded_attachments }
+    proposal.save!(validate: false)
+
+    proposal = Proposal.find(proposal.id)
+    assert_not proposal.face_image.attached?
+    assert_not proposal.other_pdf.attached?
+    assert proposal.bank_pdf.attached?
+    assert_empty ActiveStorage::Blob.where(key: keys)
+    keys.each { assert_not ActiveStorage::Blob.service.exist?(it), "plik #{it} został na dysku" }
+  end
+
   test "dane dla NETPAR – wszystkie wypełnione kolumny" do
     attributes = complete_proposal(@user).netpar_attributes
     assert_equal "R", attributes["category"]

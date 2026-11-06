@@ -42,10 +42,10 @@ class Proposal < ApplicationRecord
 
   belongs_to :creator, class_name: "User", inverse_of: :proposals
   ATTACHMENTS = %i[bank_pdf face_image consent_pdf other_pdf].freeze
-  has_one_attached :bank_pdf
-  has_one_attached :face_image
-  has_one_attached :consent_pdf
-  has_one_attached :other_pdf
+  # Pliki usuwane od razu, razem ze zgłoszeniem (dependent: :purge), nie w tle (domyślne :purge_later). Zadania w tle
+  # działają w procesie (adapter :async) – w cronie (clean_unsaved) proces kończy się przed ich wykonaniem i pliki
+  # zostawały na dysku: w starej aplikacji ok. 24 tys. plików bez bloba i 14 tys. blobów bez załącznika (stan 11.2026).
+  ATTACHMENTS.each { has_one_attached it, dependent: :purge }
   has_many :events, class_name: "ProposalEvent", dependent: :delete_all
 
   scope :submitted, -> { where(confirm_that_the_data_is_correct: true) }
@@ -340,11 +340,12 @@ class Proposal < ApplicationRecord
     end
   end
 
-  # Załączniki, które przestały być wymagane (zmiana kategorii lub wieku), i „inny załącznik” do usunięcia.
+  # Załączniki, które przestały być wymagane (zmiana kategorii lub wieku), i „inny załącznik” do usunięcia – od razu,
+  # nie w tle (patrz has_one_attached).
   def purge_unneeded_attachments
-    face_image.purge_later if face_image.attached? && !face_image_required?
-    consent_pdf.purge_later if consent_pdf.attached? && !consent_pdf_required?
-    other_pdf.purge_later if other_pdf.attached? && remove_other_pdf == "1"
+    face_image.purge if face_image.attached? && !face_image_required?
+    consent_pdf.purge if consent_pdf.attached? && !consent_pdf_required?
+    other_pdf.purge if other_pdf.attached? && remove_other_pdf == "1"
   end
 
   # --- zadania cykliczne ---

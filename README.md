@@ -37,7 +37,7 @@ Testy: `bin/rails test` (NETPAR i TERYT – WebMock), `bin/rubocop`, `bin/brakem
 |---|---|
 | `config/examinations.yml` | limity czasu NETPAR/TERYT, adres TestPortal, Matomo (witryna 21), `test_for_all_unlocked` |
 | `config/credentials/development.yml.enc`, `test.yml.enc` | lokalnie: `secret_key_base`, `database`, `host`, `netpar`, `teryt`, `saml`, `smtp`, `test_for_all_unlocked` (przeniesione z `secrets.yml` poprzedniej wersji) |
-| `config/deploy/<serwer>/production.yml.enc` + `production.key` | serwery (`test2`, `prod`) – osobny klucz dla każdego serwera; poza gitem, na serwer przez `mina <serwer> credentials:push` |
+| `config/deploy/<serwer>/production.yml.enc` + `production.key` | serwery (`test2`, `prod2` – nowy serwer produkcyjny 10.100.2.65) – osobny klucz dla każdego serwera; poza gitem, na serwer przez `mina <serwer> credentials:push` |
 | zmienne środowiskowe | nadpisują credentials, np. `NETPAR_URL`, `DATABASE_HOST`, `MATOMO_ENABLED` – patrz `config/initializers/0_examinations.rb` |
 
 Edycja credentials: lokalnie `bin/rails credentials:edit --environment development`, serwer –
@@ -45,7 +45,7 @@ Edycja credentials: lokalnie `bin/rails credentials:edit --environment developme
 na serwerze `bin/rails credentials:edit --environment production` (`config/credentials` w wydaniu to dowiązanie
 do `shared/config/credentials`). Z komputera lokalnego: `mina <serwer> credentials:show_remote` (host, baza, NETPAR, CSU – bez haseł), `credentials:edit_remote`
 (edycja na serwerze z kopią zapasową, sprawdzeniem startu aplikacji i restartem; potem lokalna kopia z serwera),
-`credentials:show_local` / `credentials:edit_local` (lokalna kopia, np. przed `credentials:push`) – opis w `config/deploy.rb`.
+`credentials:show_local` / `credentials:edit_local` (lokalna kopia) i `credentials:push` (wysłanie lokalnej kopii z kluczem na serwer – zawsze, poprzednie pliki zostają jako `.bak-<czas>`; sprawdzenie startu i restart) – opis w `config/deploy.rb`.
 Bez kompletnych ustawień (NETPAR, TERYT, host, a na produkcji SAML i SMTP) aplikacja nie startuje.
 
 ## Baza danych

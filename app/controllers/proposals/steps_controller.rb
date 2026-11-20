@@ -11,6 +11,9 @@ class Proposals::StepsController < ApplicationController
   }.freeze
 
   before_action :authenticate_user!
+  # Dane osobowe (zgłoszenia, PESEL, adres) – bez zapisu w pamięci podręcznej przeglądarki i serwerów pośredniczących
+  # (raport bezpieczeństwa 2026-11-20).
+  before_action :no_store
   before_action :set_proposal_and_step
   before_action :refresh_esod_category, only: :show
   before_action :require_previous_steps

@@ -1,6 +1,7 @@
 # Podpowiedzi adresów TERYT dla kreatora (krok 3) – tylko dla zalogowanych.
 class LookupsController < ApplicationController
   before_action :authenticate_user!
+  before_action :no_store # adresy z TERYT dla zalogowanego – bez zapisu w pamięci podręcznej
   rate_limit to: 120, within: 1.minute
 
   def addresses

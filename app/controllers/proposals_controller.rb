@@ -1,5 +1,8 @@
 class ProposalsController < ApplicationController
   before_action :authenticate_user!
+  # Dane osobowe (zgłoszenia, PESEL, adres) – bez zapisu w pamięci podręcznej przeglądarki i serwerów pośredniczących
+  # (raport bezpieczeństwa 2026-11-20). Nie dotyczy TestPortalu: jego strony ładują się w ramce z jego serwera.
+  before_action :no_store
   before_action :set_proposal, only: %i[show destroy annul testportal]
 
   def index

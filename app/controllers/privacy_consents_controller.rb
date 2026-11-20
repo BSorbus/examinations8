@@ -2,6 +2,7 @@
 # i powrót do żądanej strony; „Nie akceptuję” – zwykłe wylogowanie (także z WSO2), bez zapisu.
 class PrivacyConsentsController < ApplicationController
   before_action :authenticate_user!
+  before_action :no_store # dane osobowe – bez zapisu w pamięci podręcznej (raport bezpieczeństwa 2026-11-20)
   skip_before_action :require_privacy_consent
 
   def show

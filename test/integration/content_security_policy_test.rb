@@ -12,7 +12,7 @@ class ContentSecurityPolicyTest < ActionDispatch::IntegrationTest
     get "/pl"
     assert_response :success
     assert_nil response.headers["Content-Security-Policy-Report-Only"], "polityka wymuszana, nie tylko raport"
-    [ "default-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "font-src 'self'", "connect-src 'self'",
+    [ "default-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob:", "font-src 'self'", "connect-src 'self'",
       "frame-src 'self' https://egzaminyuke.testportal.pl", "object-src 'none'", "base-uri 'self'",
       "form-action 'self' https://egzaminyuke.testportal.pl https://idp.test", "frame-ancestors 'self'",
       "report-uri /csp-violation-report" ].each { assert_includes policy, it }

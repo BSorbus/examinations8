@@ -5,7 +5,8 @@
 #   sam). Nonce stały w obrębie sesji: Turbo podmienia strony bez przeładowania dokumentu, a polityka obowiązuje
 #   z pierwszego wczytania – nowy nonce przy każdej odpowiedzi blokowałby skrypty;
 # - style: z naszego serwera i 'unsafe-inline' (styl paska postępu Turbo); style nie wykonują kodu;
-# - obrazy: także data: (strzałki pól wyboru w Bootstrapie);
+# - obrazy: także data: (strzałki pól wyboru w Bootstrapie) i blob: (podgląd wybranego zdjęcia w kroku 4 kreatora –
+#   file_check_controller.js, URL.createObjectURL; adres tworzy skrypt strony z pliku użytkownika, nie z sieci);
 # - TestPortal (testportal_start_url): egzamin online w ramce (frame-src) uruchamiany formularzem POST (form-action);
 # - CSU (saml.idp_target_url): wylogowanie to formularz, po którym serwer przekierowuje do WSO2 – form-action obejmuje
 #   także przekierowania po wysłaniu formularza;
@@ -24,7 +25,7 @@ Rails.application.configure do
     policy.default_src :self
     policy.script_src :self, matomo_host
     policy.style_src :self, :unsafe_inline
-    policy.img_src :self, :data, matomo_host
+    policy.img_src :self, :data, :blob, matomo_host
     policy.font_src :self
     policy.connect_src :self, matomo_host
     policy.frame_src :self, testportal_host

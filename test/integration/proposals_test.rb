@@ -112,6 +112,10 @@ class ProposalsTest < ActionDispatch::IntegrationTest
     assert_select "form[action='https://egzaminyuke.testportal.pl/exam/start.html'][target=test-frame] button", text: "Test 1"
     start = JSON.parse(css_select("input[name=startTestRequest]").first["value"])
     assert_equal [ "KOD1", proposal.multi_app_identifier ], start.values_at("accessCode", "personUID")
+    # CSP: ramka i formularz startowy TestPortal dopuszczone (config/initializers/content_security_policy.rb)
+    policy = response.headers["Content-Security-Policy-Report-Only"]
+    assert_match %r{frame-src 'self' https://egzaminyuke\.testportal\.pl}, policy
+    assert_match %r{form-action 'self' https://egzaminyuke\.testportal\.pl}, policy
   end
 
   test "podpowiedzi adresów tylko dla zalogowanych" do

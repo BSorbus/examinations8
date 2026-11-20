@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <%# Wygląd strony (jasny / ciemny / kontrast) ustawiany przed narysowaniem strony, bez mignięcia:
         wybór z przełącznika, a bez niego – ustawienia systemu (wysoki kontrast, tryb ciemny). %>
-    <script>
+    <script nonce="<%= content_security_policy_nonce %>">
       (function () {
         var theme = null, mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
         try { theme = localStorage.getItem("theme"); } catch (e) {}

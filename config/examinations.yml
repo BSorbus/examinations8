@@ -15,6 +15,9 @@ shared:
   # Przycisk egzaminu online dostępny dla wszystkich zatwierdzonych wniosków online
   # (w przeciwnym razie tylko po odblokowaniu testu w NETPAR – pole test_unlocked).
   test_for_all_unlocked: false
+  # Content Security Policy (config/initializers/content_security_policy.rb): true – tylko raport naruszeń
+  # (nagłówek Content-Security-Policy-Report-Only, nic nie blokuje); po sprawdzeniu na serwerach – false.
+  csp_report_only: true
   matomo:
     enabled: false
     url: https://stats.uke.gov.pl/

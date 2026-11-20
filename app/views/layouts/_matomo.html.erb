@@ -1,6 +1,6 @@
 <%# Statystyki Matomo (dawniej Piwik) – ta sama witryna co w poprzedniej wersji (config/examinations.yml). %>
 <% matomo = Rails.configuration.x.examinations[:matomo] %>
-<script>
+<script nonce="<%= content_security_policy_nonce %>">
   var _paq = window._paq = window._paq || [];
   _paq.push(["enableLinkTracking"]);
   (function() {

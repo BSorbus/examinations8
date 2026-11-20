@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
+  # Zgłoszenia naruszeń Content Security Policy z przeglądarek (config/initializers/content_security_policy.rb).
+  post "csp-violation-report" => "csp_reports#create"
 
   # Logowanie kontem UKE (WSO2, SAML). Adres /users/saml/auth jest zarejestrowany w WSO2 – nie zmieniać.
   devise_for :users, controllers: { saml_sessions: "users/saml_sessions" }

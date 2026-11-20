@@ -36,6 +36,7 @@ Testy: `bin/rails test` (NETPAR i TERYT – WebMock), `bin/rubocop`, `bin/brakem
 | Plik | Znaczenie |
 |---|---|
 | `config/examinations.yml` | limity czasu NETPAR/TERYT, adres TestPortal, Matomo (witryna 21), `test_for_all_unlocked` |
+| `csp_report_only` w `config/examinations.yml` | Content Security Policy (`config/initializers/content_security_policy.rb`): `true` – tylko raport naruszeń (nagłówek `Content-Security-Policy-Report-Only`), `false` – polityka wymuszana. Dopuszczone poza własnym serwerem: TestPortal (ramka i formularz startowy egzaminu online), CSU (przekierowanie przy wylogowaniu), Matomo (gdy włączone). Naruszenia przeglądarki wysyłają na `/csp-violation-report` – wpis `[CSP]` w logu |
 | `config/credentials/development.yml.enc`, `test.yml.enc` | lokalnie: `secret_key_base`, `database`, `host`, `netpar`, `teryt`, `saml`, `smtp`, `test_for_all_unlocked` (przeniesione z `secrets.yml` poprzedniej wersji) |
 | `config/deploy/<serwer>/production.yml.enc` + `production.key` | serwery (`test2`, `prod2` – nowy serwer produkcyjny 10.100.2.65) – osobny klucz dla każdego serwera; poza gitem, na serwer przez `mina <serwer> credentials:push` |
 | zmienne środowiskowe | nadpisują credentials, np. `NETPAR_URL`, `DATABASE_HOST`, `MATOMO_ENABLED` – patrz `config/initializers/0_examinations.rb` |

@@ -26,6 +26,10 @@ module Examinations8
     # Maile wysyłane w tle w procesie aplikacji (jak w poprzedniej wersji) – bez osobnej kolejki i procesu.
     config.active_job.queue_adapter = :async
 
+    # Załączniki (zdjęcie, skany) zapisywane i pokazywane w oryginale – bez wariantów (miniatur), więc bez gemu
+    # image_processing; wyłączenie usuwa ostrzeżenie Rails 8.1 przy każdym starcie.
+    config.active_storage.variant_processor = :disabled
+
     config.x.examinations = config_for(:examinations)
 
     config.generators.system_tests = nil

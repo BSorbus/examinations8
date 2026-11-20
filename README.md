@@ -3,7 +3,7 @@
 Zapisy na egzaminy na świadectwa operatora urządzeń radiowych (służba radioamatorska oraz morska i żeglugi
 śródlądowej). Następca aplikacji `examinations` (Rails 5.2) – ta sama baza danych i te same adresy.
 
-Rails 8.1, Ruby 4.0.7, PostgreSQL, Propshaft, importmap, Turbo, Stimulus, Bootstrap 5.3.8 (lokalnie), Devise +
+Rails 8.1, Ruby 4.0.10, PostgreSQL, Propshaft, importmap, Turbo, Stimulus, Bootstrap 5.3.8 (lokalnie), Devise +
 SAML (WSO2), Pundit. Wygląd jak w confirmation8 (tryby jasny / ciemny / wysoki kontrast).
 
 ## Co robi aplikacja

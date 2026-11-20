@@ -12,7 +12,7 @@
 # - Matomo (gdy włączone): skrypt, zapytania i piksel ze stats.uke.gov.pl;
 # - naruszenia zgłaszane na /csp-violation-report (CspReportsController – wpis w logu).
 # Adresy liczone przy każdym żądaniu z bieżącej konfiguracji. Tryb: examinations.yml csp_report_only (true – tylko
-# raport, nic nie blokuje; po sprawdzeniu – false).
+# raport, nic nie blokuje; false – wymuszana, od 2026-11-20).
 Rails.application.configure do
   origin = ->(url) { URI(url).then { "#{it.scheme}://#{it.host}#{":#{it.port}" unless it.port == it.default_port}" } if url.present? }
   settings = -> { Rails.configuration.x.examinations }

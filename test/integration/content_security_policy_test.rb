@@ -2,7 +2,7 @@ require "test_helper"
 
 # Content Security Policy (config/initializers/content_security_policy.rb) – raport bezpieczeństwa 2026-11-20, F-03.
 class ContentSecurityPolicyTest < ActionDispatch::IntegrationTest
-  HEADER = "Content-Security-Policy-Report-Only" # examinations.yml csp_report_only: true
+  HEADER = "Content-Security-Policy" # examinations.yml csp_report_only: false – polityka wymuszana
 
   def policy = response.headers[HEADER].to_s
 
@@ -11,7 +11,7 @@ class ContentSecurityPolicyTest < ActionDispatch::IntegrationTest
   test "polityka: własne zasoby, skrypty z nonce, TestPortal (ramka, formularz), CSU (wylogowanie), raport naruszeń" do
     get "/pl"
     assert_response :success
-    assert_nil response.headers["Content-Security-Policy"], "tryb Report-Only – polityka niczego nie blokuje"
+    assert_nil response.headers["Content-Security-Policy-Report-Only"], "polityka wymuszana, nie tylko raport"
     [ "default-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "font-src 'self'", "connect-src 'self'",
       "frame-src 'self' https://egzaminyuke.testportal.pl", "object-src 'none'", "base-uri 'self'",
       "form-action 'self' https://egzaminyuke.testportal.pl https://idp.test", "frame-ancestors 'self'",
